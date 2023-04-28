@@ -73,6 +73,8 @@ class Planet:
         for key, value in planetdict.items():
             setattr(Planet, key, value) 
             
+        self.load_data(self.datapath)
+            
         self.area_weights()
         
         p10 = np.transpose(self.lev*self.ps[...,None], (0, 3, 1, 2))
@@ -340,7 +342,7 @@ def compare_profiles(datalist, proflat=16, proflon=32):
     return
 
 
-def mmr_map(data, level=2, cpower=14):
+def mmr_map(data, level=2, cpower=7):
     
     coeff = 10**cpower
     
@@ -351,14 +353,15 @@ def mmr_map(data, level=2, cpower=14):
     
     mixing_ratio = np.mean(data['mmr'],0)
     
-    plt.contourf(lons, lats, mixing_ratio[level,:,:]*coeff, 
+    plt.contourf(lons, lats, mixing_ratio[level,:,:]*coeff,
+#                 np.arange(0,1.05,0.1),
                  cmap='plasma')
     plt.title('Mass mixing ratio at %s mbar' % 
               (np.round(levels[level]*surfpress[16,32],0)))
     plt.xlabel('Longitude')
     plt.ylabel('Latitude')
     cbar = plt.colorbar()
-    cbar.ax.set_title('$10^{-14}$ kg/kg', size=10)
+    cbar.ax.set_title('$10^{-7}$ kg/kg', size=10)
     plt.show()  
     
     return
