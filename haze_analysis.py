@@ -6,7 +6,6 @@ Created on Mon May  1 09:59:59 2023
 @author: Mo Cohen
 """
 import argparse
-
 from aeropipe import *
 
 
@@ -26,9 +25,6 @@ def main(args):
     InFiles = args.infiles
     if not isinstance(InFiles, list):
         InFiles = [args.infiles]
-    
-    if args.compare == True:
-        print('Call comparative climatology here')
         
     planet_list = []   
     for item in InFiles:
@@ -44,6 +40,10 @@ def main(args):
         planet.mmr_list()
         # Create list containing only names of mmr cubes for easy iteration
         planet_list.append(planet)
+        
+    if args.compare == True:
+        print('Call comparative climatology here')
+        compare_planets(planet_list, ndata=3)
         
     return planet_list
 
@@ -68,7 +68,7 @@ def mass_main(plobjects):
             data_list.append(limb_total)
         distribution(planet, dist_axis, data_list)
         
-def profiles_main(plobjects,save=True, saveformat='png'):
+def profiles_main(plobjects,save=False, saveformat='png'):
     """ Plot vertical haze profiles"""
     for planet in plobjects:
         compare_profiles(planet, pdensity=1262, proflat=16, proflon=48,
@@ -91,7 +91,7 @@ def maps_main(plobjects):
             print(listitem)
             for l in [3,6,7]:
                 mmr_map(planet, listitem, level=l, cpower=15,
-                        save=True, 
+                        save=False, 
                         savename=f'map_{listitem}_{l}.png',
                         saveformat='png')
 

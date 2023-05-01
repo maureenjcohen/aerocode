@@ -277,6 +277,76 @@ def mmr_map(plobject, item, level=4, cpower=7,
     
     return
     
+def compare_planets(plobjects, ndata=3, level=5, n=2, qscale=10):
+    """ Compare climatology of all planets in parameter space"""
+    names = []
+    for plobject in plobjects:
+        plname = plobject.longname
+        names.append(plname)
+    redblu = mpl_cm.get_cmap('coolwarm')
+    hot = mpl_cm.get_cmap('hot')
+    
+    fig, ax = plt.subplots(figsize=(16, 22), nrows=5, ncols=ndata)
+    for i in range(ndata):
+        plobject = plobjects[i]
+        #Surface temperature
+        surf = ax[0, i].contourf(plobject.lon, plobject.lat,
+               np.mean(plobject.ts, axis=0), 
+               levels=np.arange(100, 400, 20),
+               cmap=hot)
+        ax[0,i].set_title(f'{plobject.longname}', fontsize=14)
+        fig.colorbar(surf, orientation='vertical')#        
+        ax[0, i].set_xlabel('Longitude [deg]', fontsize=14)
+        ax[0, i].set_ylabel('Surface temperature [K] \n Latitude [deg]', fontsize=14)
+        # Air temperature profile
+        ax[1, i].plot(np.mean(plobject.ta[:,:,16,32], axis=0),
+                      np.mean(plobject.flpr[:,:,16,32]/100,axis=0),
+                      color='r', label='Substellar')
+        ax[1, i].plot(np.mean(plobject.ta[:,:,16,0], axis=0),
+                      np.mean(plobject.flpr[:,:,16,0]/100,axis=0),
+                      color='b', label='Antistellar')
+        ax[1, i].legend()
+        ax[1, i].set_xlabel('Temperature [K]', fontsize=14)
+        ax[1, i].set_ylabel('Temperature profile \n Pressure [mbar]', fontsize=14)
+        # Water vapour profile
+        ax[2, i].plot(np.mean(plobject.hus[:,:,16,32], axis=0),
+                      np.mean(plobject.flpr[:,:,16,32]/100,axis=0),
+                      color='r', label='Substellar')
+        ax[2, i].plot(np.mean(plobject.hus[:,:,16,0], axis=0),
+                      np.mean(plobject.flpr[:,:,16,0]/100,axis=0),
+                      color='b', label='Antistellar')
+        ax[2, i].legend()
+        ax[2, i].set_xlabel('Specific humidity [kg/kg]', fontsize=14)
+        ax[2, i].set_ylabel('Vapour profile \n Pressure [mbar]', fontsize=14)
+        # ZMZW
+        cont = ax[3, i].contourf(plobject.lat, np.mean(plobject.flpr[:,:,16,32], axis=0), 
+               np.mean(plobject.ua, axis=(0,3)), levels=np.arange(-60, 140, 20), 
+               cmap=redblu, norm=TwoSlopeNorm(0))
+        ax[3, i].set_ylabel('Zonal mean zonal wind [m/s] \n Pressure [mbar]', fontsize=14)
+        ax[3, i].set_xlabel('Latitude [degrees]', fontsize=14)
+        fig.colorbar(cont, orientation='vertical')
+        # Winds
+        X, Y = np.meshgrid(np.arange(0, len(plobject.lon)), np.arange(0, len(plobject.lat)))
+        q1 = ax[4, i].quiver(X[::n, ::n], Y[::n, ::n], 
+                            np.mean(plobject.ua[:, level, ::n, ::n], axis=0),
+                            -np.mean(plobject.va[:, level, ::n, ::n], axis=0),
+                            scale_units='xy', scale=qscale)
+        ax[4, i].quiverkey(q1, X=0.9, Y=1.05, U=qscale*2, label='%s m/s' %str(qscale*2),
+                     labelpos='E', coordinates='axes')
+        ax[4, i].set_xticks((0, 16, 32, 48, 64), 
+                    ('180W', '90W', '0','90E','180E'))
+        ax[4, i].set_yticks((0, 8, 16, 24, 32 ),
+                    ('90S', '45S', '0', '45N', '90N'))
+        ax[4, i].set_xlabel('Longitude [deg]', fontsize=14)
+        ax[4, i].set_ylabel('Horizontal and vertical winds \n Latitude [deg]', fontsize=14)
+    plt.show()
+
+
+
+
+
+
+    
 def mmr2n(plobject, item):
     """ Convert mass mixing ratio (kg/kg) to number density (particles/m3)"""
     mmr_raw = plobject.data[item] # in kg/kg
