@@ -190,7 +190,8 @@ def limb_mass(plobject, inputcol):
        
     return limbsum
 
-def distribution(plobject, inputaxis, inputcube):
+def distribution(plobject, inputaxis, inputcube, save=False,
+                savename='plotname.png', saveformat='png'):
     """ Plot total integrated haze at terminator against particle size"""
     
     color1 = [[1,0,0] for x in range(10)]
@@ -204,12 +205,81 @@ def distribution(plobject, inputaxis, inputcube):
     plt.ylabel('kg')
 #        plt.yscale('log')
     plt.xscale('log')
+    if save:
+        plt.savefig(plobject.savepath + savename, format=saveformat)
     plt.show()
     
+def compare_profiles(plobject, pdensity=1262, proflat=16, proflon=48,
+                    titleloc='eastern terminator', save=False,
+                    savename='plotname.png', saveformat='png'):
     
-def mmr2n(planet, item):
+    """ Plot vertical profiles of haze mmr at input lat and lon. 
+        Args for proflon:
+        0: Antistellar point
+        16: Western terminator
+        32: Substellar point
+        48: Eastern terminator
+        63: Antistellar point again """
+    mmrs_toplot = []
+    psizes = []
+    for item in plobject.mmrs:
+        particle_den = float(item[-10:-6])        
+        if particle_den == pdensity:
+            data = np.mean(plobject.data[item], axis=0)
+            mmrs_toplot.append(data)            
+            coeff, power = item[-5], item[-2:]
+            particle_rad = float(coeff + 'e-' + power)
+            psizes.append(particle_rad)
+        
+    titlelat = int(np.round(plobject.lat[proflat],0))
+    titlelon = int(np.round(plobject.lon[proflon],0))
+    pressure = np.mean(plobject.flpr[:,:,proflat,proflon],axis=0)/100
+    
+    fig, ax = plt.subplots(figsize=(7,5))
+    for i in range(0,len(mmrs_toplot)):
+        mmr = mmrs_toplot[i]
+        plabel = psizes[i]
+        plt.plot(mmr[:,proflat,proflon], pressure,
+                 label=f'{plabel}')
+    plt.gca().invert_yaxis()
+    plt.title(f'Mean haze profile at {titleloc}',
+              fontsize=14)
+    plt.xlabel('Mass mixing ratio [kg/kg]', fontsize=14)
+    plt.ylabel('Pressure [mbar]', fontsize=14)
+#    plt.xlim(0,plobject.msource)
+    plt.legend(fontsize='small')
+    fig.tight_layout()
+    if save:
+        plt.savefig(plobject.savepath + savename, format=saveformat)
+    plt.show()
+    
+    return
+    
+def mmr_map(plobject, item, level=4, cpower=7, 
+            save=False, savename='plotname.png', 
+            saveformat='png'):
+    
+    coeff = 10**cpower
+    
+    fig, ax = plt.subplots(figsize=(7,5))    
+    plt.contourf(plobject.lon, plobject.lat, 
+                np.mean(plobject.data[item][:,level,:,:],axis=0)*coeff,
+#                 np.arange(0,1.05,0.1),
+                 cmap='plasma')
+    plt.title('Mass mixing ratio at %s mbar' % 
+              (np.round(np.mean(plobject.flpr[:,level,16,32], axis=0)/100)))
+    plt.xlabel('Longitude')
+    plt.ylabel('Latitude')
+    cbar = plt.colorbar()
+    cbar.ax.set_title('$10^{-7}$ kg/kg', size=10)
+    fig.tight_layout()
+    plt.show()  
+    
+    return
+    
+def mmr2n(plobject, item):
     """ Convert mass mixing ratio (kg/kg) to number density (particles/m3)"""
-    mmr_raw = planet.data[item] # in kg/kg
+    mmr_raw = plobject.data[item] # in kg/kg
     
     coeff, power = item[-5], item[-2:]
     particle_rad = float(coeff + 'e-' + power)
@@ -217,11 +287,13 @@ def mmr2n(planet, item):
     sphere_vol = (4/3)*np.pi*(particle_rad**3)
     particle_mass = sphere_vol*particle_den
     
-    outcube = mmr_raw*(1/particle_mass)*planet.rhog # particles/m3
-    nsource = planet.msource*(1/particle_mass)*np.mean(planet.rhog[:,0,16,32], axis=0)
+    outcube = mmr_raw*(1/particle_mass)*plobject.rhog # particles/m3
+    nsource = plobject.msource*(1/particle_mass)*np.mean(plobject.rhog[:,0,16,32], axis=0)
     return outcube, nsource
     
-    
+
+
+### Old functions, maybe delete after fully cannibalised    
 
 def import_data(path):
     
@@ -310,44 +382,6 @@ def compare_years(yearlist, startyear=0, proflat=16, proflon=32, clevel=8):
     plt.show()
 
     return
-
-
-def compare_profiles(datalist, proflat=16, proflon=32):
-    
-    """ Args for proflon:
-        0: Antistellar point
-        16: Western terminator
-        32: Substellar point
-        48: Eastern terminator
-        63: Antistellar point again """
-    
-    return
-
-
-def mmr_map(data, level=2, cpower=7):
-    
-    coeff = 10**cpower
-    
-    levels = data['lev']
-    lats = data['lat']
-    lons = data['lon']
-    surfpress = np.mean(data['ps'], axis=0)
-    
-    mixing_ratio = np.mean(data['mmr'],0)
-    
-    plt.contourf(lons, lats, mixing_ratio[level,:,:]*coeff,
-#                 np.arange(0,1.05,0.1),
-                 cmap='plasma')
-    plt.title('Mass mixing ratio at %s mbar' % 
-              (np.round(levels[level]*surfpress[16,32],0)))
-    plt.xlabel('Longitude')
-    plt.ylabel('Latitude')
-    cbar = plt.colorbar()
-    cbar.ax.set_title('$10^{-7}$ kg/kg', size=10)
-    plt.show()  
-    
-    return
-
 
 def surface_temp(data):
     
@@ -506,15 +540,5 @@ def zmzw(data, time_slice=-1, meaning=True):
     cbar = plt.colorbar()
     cbar.ax.set_title('m/s')
     plt.show()
-    
-    
-    
-    
-    
-    
 
-
-    
-    
-    
     

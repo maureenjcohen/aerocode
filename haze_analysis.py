@@ -26,19 +26,30 @@ def main(args):
     InFiles = args.infiles
     if not isinstance(InFiles, list):
         InFiles = [args.infiles]
+    
+    if args.compare == True:
+        print('Call comparative climatology here')
         
+    planet_list = []   
     for item in InFiles:
         planet = Planet(dict_of_dicts[item])
         # Instantiate a Planet class object with info from the planet dict
         # This is stuff like planet radius, star temperature, etc.
         planet.load_data(planet.datapath)
-        # Load the data file containing simulation data
+        # Load the file containing simulation data
         planet.add_rhog()
         # Calculate and add air density
         planet.area_weights()
         # Calculate and add area weights for area-weighted meaning
         planet.mmr_list()
         # Create list containing only names of mmr cubes for easy iteration
+        planet_list.append(planet)
+        
+    return planet_list
+
+def mass_main(plobjects):
+    """ Plot all haze mass colums and planetary limb mass versus particle size"""
+    for planet in plobjects:
         dist_axis = []
         data_list = []
         for item in planet.mmrs:
@@ -49,22 +60,40 @@ def main(args):
             dist_axis.append(particle_rad)
             titlestr = f'{planet.longname}, r={item[-5]}e-{item[-1:]}m, rho={item[-10:-6]} kg/m3'
             haze_column = mass_column(planet, mass_loading(planet, item))            
-            # plot_lonlat(planet, haze_column,title = titlestr, 
-            #             unit = 'kg m$^{-2}$', save = False,
-            #             savename = 'column_' + experiment + '.png', 
-            #             saveformat='png')
+            plot_lonlat(planet, haze_column,title = titlestr, 
+                        unit = 'kg m$^{-2}$', save = False,
+                        savename = 'column_' + experiment + '.png', 
+                        saveformat='png')
             limb_total = limb_mass(planet, haze_column)
             data_list.append(limb_total)
         distribution(planet, dist_axis, data_list)
         
-
-
-    if args.compare == True:
-        print('Comparative climatology here')
-        
-    
-    
-
+def profiles_main(plobjects,save=True, saveformat='png'):
+    """ Plot vertical haze profiles"""
+    for planet in plobjects:
+        compare_profiles(planet, pdensity=1262, proflat=16, proflon=48,
+                        titleloc='eastern terminator', save=save,
+                        saveformat=saveformat, savename='east_term_profiles.png')
+        compare_profiles(planet, pdensity=1262, proflat=16, proflon=16,
+                        titleloc='western terminator', save=save,
+                        saveformat=saveformat, savename='west_term_profiles.png')
+        compare_profiles(planet, pdensity=1262, proflat=16, proflon=32,
+                        titleloc='substellar point', save=save,
+                        saveformat=saveformat, savename='sub_profiles.png')
+        compare_profiles(planet, pdensity=1262, proflat=16, proflon=0,
+                        titleloc='antistellar point', save=save,
+                        saveformat=saveformat, savename='anti_profiles.png')
+                        
+def maps_main(plobjects):
+    """ Plot loads of contourfill maps of mmr at various levels """
+    for planet in plobjects:
+        for listitem in planet.mmrs[0:1]:
+            print(listitem)
+            for l in [3,6,7]:
+                mmr_map(planet, listitem, level=l, cpower=15,
+                        save=True, 
+                        savename=f'map_{listitem}_{l}.png',
+                        saveformat='png')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -81,6 +110,10 @@ if __name__ == "__main__":
         action='store_true',
         help='Whether to generate comparative plots')
 
-    args = parser.parse_args()
-
-    main(args)
+    args = parser.parse_args()    
+    all_planets = main(args)
+    
+    ### Now run bulk analysis functions
+#    mass_main(all_planets)
+    profiles_main(all_planets)
+    maps_main(all_planets)
