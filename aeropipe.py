@@ -15,52 +15,63 @@ from matplotlib.colors import TwoSlopeNorm
 warnings.filterwarnings('ignore')
 
 
-path1 = '/home/s1144983/aerosim/parameter_space/trapdata/'
-path2 = '/home/s1144983/aerosim/parameter_space/k2data/'
-path3 = '/home/s1144983/aerosim/parameter_space/wolfdata/'
+path1 = '/home/s1144983/aerosim/parameter_space/trap/'
+path2 = '/home/s1144983/aerosim/parameter_space/gj667/'
+path3 = '/home/s1144983/aerosim/parameter_space/wolf'
 
 
 top_dir = '/home/s1144983/aerosim/parameter_space/'
 
-trapdict = {'radius' : 0.92, 'solcon' : 889, 'startemp' : 2709, 'N2' : 0.9996,
-            'CO2' : 0.000400, 'H2' : 0.0, 'rotperiod' : 6.1, 'gravity' : 9.1,
+### Dictionaries for instantiating Planet objects ###
+
+trapdict = {'radius' : 0.92, 'solcon' : 889, 'startemp' : 2709, 'N2' : 0.988,
+            'CO2' : 0.01, 'CH4' : 0.002, 'H2' : 0.0, 'rotperiod' : 6.1, 'gravity' : 9.1,
             'starrad' : 0.12, 'starspec' : top_dir + 'stellarspectra/trap.dat', 
-            'eccentricity': 0.0, 'bulk' : 1, 'msource' : 1e-13,
-            'name' : 'TRAPPIST-1e'}
+            'eccentricity': 0.0, 'bulk' : 1, 'msource' : 1e-07,
+            'longname' : 'TRAPPIST-1e', 'name' : 'trap',
+            'datapath' : '/home/s1144983/aerosim/parameter_space/trap.npz',
+            'savepath' : '/home/s1144983/aerosim/parameter_space/trap/'}
 
-k2dict = {'radius' : 2.37, 'solcon' : 1722, 'startemp' : 3518, 'N2' : 0.0,
-            'CO2' : 0.0, 'H2' : 1.0, 'rotperiod' : 33., 'gravity' : 16.3,
-            'starrad': 0.42, 'starspec' : top_dir + 'stellarspectra/k2.dat',
-            'name' : 'K2-18b', 'eccentricity': 0.0, 'bulk' : 2, 'msource' : 1e-13}
+# k2dict = {'radius' : 2.37, 'solcon' : 1722, 'startemp' : 3518, 'N2' : 0.0,
+#             'CO2' : 0.0, 'H2' : 1.0, 'rotperiod' : 33., 'gravity' : 16.3,
+#             'starrad': 0.42, 'starspec' : top_dir + 'stellarspectra/k2.dat',
+#             'name' : 'K2-18b', 'eccentricity': 0.0, 'bulk' : 2, 'msource' : 1e-13}
 
-teedict = {'radius' : 1.02, 'solcon' : 1572, 'startemp' : 2997, 'N2' : 0.9996,
-            'CO2' : 0.000400, 'H2' : 0.0, 'rotperiod' : 4.91, 'gravity' : 9.9,
-            'starrad' : 0.11, 'starspec' : top_dir + 'stellarspectra/teegarden.dat',
-            'name' : 'Teegardens Star b', 'eccentricity': 0.0, 'bulk' : 1, 'msource' : 1e-13}
+# teedict = {'radius' : 1.02, 'solcon' : 1572, 'startemp' : 2997, 'N2' : 0.9996,
+#             'CO2' : 0.000400, 'H2' : 0.0, 'rotperiod' : 4.91, 'gravity' : 9.9,
+#             'starrad' : 0.11, 'starspec' : top_dir + 'stellarspectra/teegarden.dat',
+#             'name' : 'Teegardens Star b', 'eccentricity': 0.0, 'bulk' : 1, 'msource' : 1e-13}
 
-kep452dict = {'radius' : 1.63, 'solcon' : 1504, 'startemp' : 5635, 'N2' : 0.9996,
-            'CO2' : 0.000400, 'H2' : 0.0, 'rotperiod' : 385, 'gravity' : 12.2,
-            'starrad' : 1.0, 'starspec' : top_dir + 'stellarspectra/kep452.dat',
-            'name' : 'Kepler-452b', 'eccentricity': 0.0, 'bulk' : 1, 'msource' : 1e-13}
+# kep452dict = {'radius' : 1.63, 'solcon' : 1504, 'startemp' : 5635, 'N2' : 0.9996,
+#             'CO2' : 0.000400, 'H2' : 0.0, 'rotperiod' : 385, 'gravity' : 12.2,
+#             'starrad' : 1.0, 'starspec' : top_dir + 'stellarspectra/kep452.dat',
+#             'name' : 'Kepler-452b', 'eccentricity': 0.0, 'bulk' : 1, 'msource' : 1e-13}
 
-kep1649dict =  {'radius' : 1.06, 'solcon' : 1025, 'startemp' : 3383, 'N2' : 0.9996,
-            'CO2' : 0.000400, 'H2' : 0.0, 'rotperiod' : 19.5, 'gravity' : 10.5,
-            'starrad' : 0.24, 'starspec' : top_dir + 'stellarspectra/kep1649.dat',
-            'name' : 'Kepler-1649c', 'eccentricity': 0.0, 'bulk' : 1, 'msource' : 1e-13}
+# kep1649dict =  {'radius' : 1.06, 'solcon' : 1025, 'startemp' : 3383, 'N2' : 0.9996,
+#             'CO2' : 0.000400, 'H2' : 0.0, 'rotperiod' : 19.5, 'gravity' : 10.5,
+#             'starrad' : 0.24, 'starspec' : top_dir + 'stellarspectra/kep1649.dat',
+#             'name' : 'Kepler-1649c', 'eccentricity': 0.0, 'bulk' : 1, 'msource' : 1e-13}
 
-wolfdict = {'radius' : 1.66, 'solcon' : 1777, 'startemp' : 3408, 'N2' : 0.9996,
-            'CO2' : 0.000400, 'H2' : 0.0, 'rotperiod' : 17.9, 'gravity' : 12.1,
+wolfdict = {'radius' : 1.66, 'solcon' : 1777, 'startemp' : 3408, 'N2' : 0.988,
+            'CO2' : 0.01, 'CH4' : 0.002, 'H2' : 0.0, 'rotperiod' : 17.9, 'gravity' : 12.1,
             'starrad' : 0.32, 'starspec' : top_dir + 'stellarspectra/wolf.dat',
-            'name' : 'Wolf-1061c', 'eccentricity': 0.0, 'bulk' : 1,
-            'datapath' : '/home/s1144983/aerosim/parameter_space/Wolf-1061c.npz',
-            'msource' : 1e-13}
+            'longname' : 'Wolf-1061c', 'eccentricity': 0.0, 'bulk' : 1,
+            'datapath' : '/home/s1144983/aerosim/parameter_space/wolf.npz',
+            'msource' : 1e-07,'name' : 'wolf',
+            'savepath' : '/home/s1144983/aerosim/parameter_space/wolf/'}
 
-gj667dict = {'radius' : 1.77, 'solcon' : 1202, 'startemp' : 3594, 'N2' : 0.9996,
-            'CO2' : 0.000400, 'H2' : 0.0, 'rotperiod' : 28.1, 'gravity' : 11.9,
+gj667dict = {'radius' : 1.77, 'solcon' : 1202, 'startemp' : 3594, 'N2' : 0.988,
+            'CO2' : 0.01, 'CH4': 0.002, 'H2' : 0.0, 'rotperiod' : 28.1, 'gravity' : 11.9,
             'starrad' : 0.42, 'starspec' : top_dir + 'stellarspectra/gj667.dat',
-            'name' : 'GJ667Cc', 'eccentricity': 0.2, 'bulk' : 1, 'msource' : 1e-13}
+            'longname' : 'GJ667Cc', 'eccentricity': 0.0, 'bulk' : 1, 
+            'msource' : 1e-07, 'name' : 'gj667',
+            'datapath' : '/home/s1144983/aerosim/parameter_space/gj667.npz',
+            'savepath' : '/home/s1144983/aerosim/parameter_space/gj667/'}
 
 
+### Planet class object definition ###
+### Manages planet configuration data and simulation output data.
+### Also adds a few useful supplementary values like area weights
 
 class Planet:
     """ A Planet object which contains the model output data for a planet,
@@ -68,18 +79,10 @@ class Planet:
     simulation in the parameter space."""
     
     def __init__(self, planetdict):
-        self.name = planetdict['name']
-        print(f'Welcome to {self.name}!')
+        self.longname = planetdict['longname']
+        print(f'Welcome to {self.longname}!')
         for key, value in planetdict.items():
             setattr(Planet, key, value) 
-            
-        self.load_data(self.datapath)
-            
-        self.area_weights()
-        
-        p10 = np.transpose(self.lev*self.ps[...,None], (0, 3, 1, 2))
-        rhog = (p10*0.028)/(8.314*self.ta) # (time, height, lat, lon)
-        self.rhog = rhog
         
     def load_files(self, datadir):
         """ Load files in a data directory and combine into one dictionary"""
@@ -118,84 +121,11 @@ class Planet:
         for key, value in planetdata.items():
             setattr(Planet, key, value)
             
-    def plot_lonlat(self, cube, title, unit, colors='plasma'):
-        """ Make a lon-lat contourfill plot of the input data cube"""
-        plt.contourf(self.lon, self.lat, cube, cmap=colors)
-        plt.title(title + '\n' + 'Total haze column excluding source', fontsize=14)
-        plt.xlabel('Longitude', fontsize=14)
-        plt.ylabel('Latitude', fontsize=14)
-        cbar = plt.colorbar()
-        cbar.set_label(unit, fontsize=10)
-        plt.show()
+    def add_rhog(self):   
+        """ Calculate density of air and add to planet sim data"""
+        rhog = (self.flpr*0.028)/(8.314*self.ta) # (time, height, lat, lon)
+        self.rhog = rhog
         
-    def mmr2n(self, item):
-        """ Convert mass mixing ratio (kg/kg) to number density (particles/m3)"""
-        mmr_raw = self.data[item] # in kg/kg
-        
-        coeff, power = item[-5], item[-2:]
-        particle_rad = float(coeff + 'e-' + power)
-        particle_den = float(item[-10:-6])
-        sphere_vol = (4/3)*np.pi*(particle_rad**3)
-        particle_mass = sphere_vol*particle_den
-        
-        outcube = mmr_raw*(1/particle_mass)*self.rhog # particles/m3
-        nsource = self.msource*(1/particle_mass)*np.mean(self.rhog[:,0,16,32], axis=0)
-        return outcube, nsource
-
-    def mmr2kg(self, item):
-        """ Convert mass mixing ratio (kg/kg) to mass density (kg/m3)"""
-        mmr_raw = self.data[item] # in kg/kg
-        rhcube = mmr_raw*self.rhog
-        return rhcube
-        
-    def haze_column(self, item, month=-1, meaning=True, display=True, cubetype='num'):
-        """ Calculate total integrated vertical haze column and plot """
-        if cubetype=='num':            
-            ncube, nsource = self.mmr2n(item=item)
-            barunit = 'particles/m2'
-            if meaning==True:
-                p11 = np.transpose(self.levp*self.ps[...,None], (0, 3, 1, 2))
-                dz = np.diff(np.mean(p11,axis=0),axis=0)/(self.gravity*np.mean(self.rhog,axis=0))
-                column = np.sum(np.mean(ncube[:,1:,:,:],axis=0)*dz[1:,:,:],axis=0)/nsource
-            else:
-                p11 = np.transpose(self.levp*self.ps[...,None], (0, 3, 1, 2))
-                dz = np.diff(p11[month,:,:,:],axis=0)/(self.gravity*self.rhog[month,:,:,:])
-                column = np.sum(ncube[month,1:,:,:]*dz[1:,:,:],axis=0)/nsource
-                
-        elif cubetype=='mass':
-            mcube = self.mmr2kg(item=item)
-            barunit = 'kg/m2'
-            if meaning==True:           
-                pressure = np.transpose(self.levp * \
-                            np.mean(self.ps, axis=0)[...,None], (2, 0, 1))
-                pressure_thickness = np.diff(pressure, axis=0)
-                column = np.sum(np.mean(mcube[:,1:,:,:], axis=0) * \
-                          pressure_thickness[1:,:,:], axis=0)
-                column /= self.gravity
-            else:
-                pressure = self.levp[month,:,:,:] * \
-                            self.ps[month,:,:,:]
-                pressure_thickness = np.diff(pressure, axis=1)
-                column = np.sum(mcube[month,:,:,2:] * \
-                          pressure_thickness[:,:,2:], axis=0)
-                column /= self.gravity
-            
-        titlestr = f'{self.name}, r={item[-5]}e-{item[-1:]}m, rho={item[-10:-6]} kg/m3'
-        if display==True:
-            self.plot_lonlat(column, title=titlestr, unit=barunit)
-        return column
-        
-    def all_columns(self, display=True):
-        """ Plot total haze column for all simulations"""
-        all_keys = self.data.keys()
-        mmr_keys = [key for key in all_keys if len(key) > 6]
-        mmr_cols = {}
-        for key in mmr_keys:
-            keycol = self.haze_column(item=key, display=display)       
-            case = {str(key) : keycol}
-            mmr_cols.update(case)
-        return mmr_cols
-    
     def area_weights(self):
         """ Calculate array of area of each grid cell for use in averaging"""
         xlon, ylat = np.meshgrid(self.lon, self.lat)
@@ -205,40 +135,92 @@ class Planet:
         dy = dlat*rad
         dx = dlon*rad*np.cos(np.deg2rad(ylat))
         area = dy*dx
-        self.area = area       
+        self.area = area
         
-    def distribution(self):
-        """ Plot total integrated haze at terminator against particle size"""
-        self.area_weights()
-        haze_cols = self.all_columns(display=False)
+    def mmr_list(self):
+        """ Make list of mmr data cubes only"""
+        mmrs = [item for item in self.contents if 
+                item.split('_')[0] == self.name]
+        self.mmrs = mmrs
         
-        x_axis = []
-        data_list = []
-        for key in haze_cols.keys():
-            coeff, power = key[-5], key[-2:]
-            size_string = coeff + 'e-' + power
-            x_axis.append(float(size_string))
+### Functions
 
-            haze_data = haze_cols[key]
-            limb_wsum = (np.sum(haze_data[:,16]*self.area[:,16]) + \
-                        np.sum(haze_data[:,48]*self.area[:,48]))
-            limb_area = np.sum(np.sum(self.area[:,16]) + np.sum(self.area[:,48]))
-            limb_mean = limb_wsum/limb_area
-            data_list.append(limb_mean)
-        color1 = [[1,0,0] for x in range(10)]
-        color2 = [[0,1,0] for x in range(10)]
-        color3 = [[0,0,1] for x in range(10)]
-        colors = np.array(color1+color2+color3)
+def mass_loading(plobject, cube):
+    """ Calculate haze mass loading in kg(of haze)/m3"""
+    datacube = plobject.data[cube]
+    mass_load = datacube*plobject.rhog        
+      
+    return mass_load
+
+def mass_column(plobject, cube, month=-1, meaning=True):
+    """ Calculate vertically integrated haze mass column (kg/m2)
+    
+    We exclude the top level from the integration because it contains the
+    fixed haze source, which is of greater magnitude than the lower level
+    mass loading."""
+    if meaning == True:
+        dz = np.diff(np.mean(plobject.hlpr,axis=0),axis=0)/(plobject.gravity*np.mean(plobject.rhog,axis=0))
+        column = np.sum(np.mean(cube[:,1:,:,:],axis=0)*dz[1:,:,:],axis=0)
+    else:
+        dz = np.diff(plobject.hlpr[month,:,:,:],axis=0)/(plobject.gravity*plobject.rhog[month,:,:,:])
+        column = np.sum(cube[month,1:,:,:]*dz[1:,:,:],axis=0)
         
-        plt.scatter(np.array(x_axis), np.array(data_list), c=colors)
-        plt.title('Mean total haze column at the planetary limb')
-        plt.xlabel('Particle radius [m]')
-        plt.ylabel('Mean particles/m2')
+    return column    
+    
+def plot_lonlat(plobject, cube, title = 'Planet', unit='kg m$^{-2}$', 
+                colors='plasma', save=False, savename='plotname.png', 
+                saveformat='png'):
+    """ Make a lon-lat contourfill plot of the input data cube"""
+    plt.contourf(plobject.lon, plobject.lat, cube, cmap=colors)
+    plt.title(title + '\n' + 'Total haze column excluding source',
+              fontsize=14)
+    plt.xlabel('Longitude', fontsize=14)
+    plt.ylabel('Latitude', fontsize=14)
+    cbar = plt.colorbar()
+    cbar.set_label(unit, fontsize=10)
+    if save:
+        plt.savefig(plobject.savepath + savename, format=saveformat)
+    plt.show()
+    
+def limb_mass(plobject, inputcol):
+    """ Calculate total haze mass at planetary limb"""
+    
+    limbsum = (np.sum(inputcol[:,16]*plobject.area[:,16]) + \
+                np.sum(inputcol[:,48]*plobject.area[:,48]))
+       
+    return limbsum
+
+def distribution(plobject, inputaxis, inputcube):
+    """ Plot total integrated haze at terminator against particle size"""
+    
+    color1 = [[1,0,0] for x in range(10)]
+    color2 = [[0,1,0] for x in range(10)]
+    color3 = [[0,0,1] for x in range(10)]
+    colors = np.array(color1+color2+color3)
+    
+    plt.scatter(np.array(inputaxis), np.array(inputcube), c=colors)
+    plt.title('Total haze column at the planetary limb')
+    plt.xlabel('Particle radius [m]')
+    plt.ylabel('kg')
 #        plt.yscale('log')
-        plt.xscale('log')
-        plt.show()
-        
-        
+    plt.xscale('log')
+    plt.show()
+    
+    
+def mmr2n(planet, item):
+    """ Convert mass mixing ratio (kg/kg) to number density (particles/m3)"""
+    mmr_raw = planet.data[item] # in kg/kg
+    
+    coeff, power = item[-5], item[-2:]
+    particle_rad = float(coeff + 'e-' + power)
+    particle_den = float(item[-10:-6])
+    sphere_vol = (4/3)*np.pi*(particle_rad**3)
+    particle_mass = sphere_vol*particle_den
+    
+    outcube = mmr_raw*(1/particle_mass)*planet.rhog # particles/m3
+    nsource = planet.msource*(1/particle_mass)*np.mean(planet.rhog[:,0,16,32], axis=0)
+    return outcube, nsource
+    
     
 
 def import_data(path):
@@ -525,34 +507,6 @@ def zmzw(data, time_slice=-1, meaning=True):
     cbar.ax.set_title('m/s')
     plt.show()
     
-
-def plot_lonlat(data, cube, unit, colors='plasma'):
-    """ Make a lon-lat contourfill plot of the input data cube"""
-    plt.contourf(data.lon, data.lat, cube, cmap=colors)
-    plt.xlabel('Longitude')
-    plt.ylabel('Latitude')
-    cbar = plt.colorbar()
-    cbar.set_label(unit, fontsize=10)
-    plt.show()
-    
-def haze_column(data, cubename, month=-1, meaning=True):
-    """ Calculate total integrated vertical haze column and plot """
-    if meaning==True:           
-        pressure = np.transpose(data.levp * \
-                   np.mean(data.ps, axis=0)[...,None], (2, 0, 1))
-        pressure_thickness = np.diff(pressure, axis=0)
-        column = np.sum(np.mean(cubename[:,1:,:,:], axis=0) * \
-                 pressure_thickness[1:,:,:], axis=0)
-        column /= data.gravity
-    else:
-        pressure = data.levp[month,:,:,:] * \
-                   data.ps[month,:,:,:]
-        pressure_thickness = np.diff(pressure, axis=1)
-        column = np.sum(cubename[month,1:,:,:] * \
-                 pressure_thickness[1:,:,:], axis=0)
-        column /= data.gravity
-    
-    plot_lonlat(data=data, cube=column, unit='kg/kg')
     
     
     
