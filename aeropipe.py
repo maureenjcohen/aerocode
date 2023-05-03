@@ -283,36 +283,37 @@ def limb_mass(plobject, inputcol):
        
     return limbsum
 
-def distribution(plobject, inputlists, save=False,
+def distribution(plobject, inputaxis, inputlists, save=False,
                 savename='plotname.png', saveformat='png'):
     """ Plot total integrated haze at terminator against particle size"""
     
     fig, ax = plt.subplots(figsize=(6,4))    
-    plt.scatter(np.array(plobject.radii), np.array(inputlists[0]), 
+    plt.scatter(np.array(inputaxis), np.array(inputlists[0]), 
             c='g', label='1000 kg/m$^3$')
-    plt.scatter(np.array(plobject.radii), np.array(inputlists[1]), 
+    plt.scatter(np.array(inputaxis), np.array(inputlists[1]), 
             c='r', label='1262 kg/m$^3$')
-    plt.scatter(np.array(plobject.radii), np.array(inputlists[2]), 
+    plt.scatter(np.array(inputaxis), np.array(inputlists[2]), 
             c='b', label='1328 kg/m$^3$')
     plt.title('Total haze column at the planetary limb')
     plt.xlabel('Particle radius [m]')
     plt.ylabel('kg')
 #        plt.yscale('log')
     plt.xscale('log')
+    plt.legend()
     if save:
         plt.savefig(plobject.savepath + savename, format=saveformat)
     plt.show()
     
-def distribution_scatter(plobject, inputlists, save=False,
+def distribution_scatter(plobject, inputaxis, inputlists, save=False,
                 savename='plotname.png', saveformat='png'):
     """ Plot total integrated haze at terminator against particle size"""
     
     fig, ax1 = plt.subplots(figsize=(6,4))
-    line1 = ax1.scatter(np.array(plobject.radii), np.array(inputlists[0]), 
+    line1 = ax1.scatter(np.array(inputaxis), np.array(inputlists[0]), 
             c='g', label='1000 kg/m$^3$')
-    line2 = ax1.scatter(np.array(plobject.radii), np.array(inputlists[1]), 
+    line2 = ax1.scatter(np.array(inputaxis), np.array(inputlists[1]), 
             c='r', label='1262 kg/m$^3$')
-    line3 = ax1.scatter(np.array(plobject.radii), np.array(inputlists[2]), 
+    line3 = ax1.scatter(np.array(inputaxis), np.array(inputlists[2]), 
             c='b', label='1328 kg/m$^3$')
     ax1.set_ylabel('kg')
     ax1.set_xlabel('Particle radius [m]')
@@ -325,29 +326,28 @@ def distribution_scatter(plobject, inputlists, save=False,
     line5 = ax2.scatter(np.array(plobject.radii), np.array(plobject.sw2), 
             marker='s', color='m', label='Band 2')
     ax2.set_ylabel('Extinction efficiency')
-    lns = line1+line2+line3+line4+line5
+    lns = [line1,line2,line3,line4,line5]
     labs = [l.get_label() for l in lns]
     plt.legend(lns, labs)
-    plt.title('Total haze column at planetary limb \n and extinction efficiency')
+    plt.title('Total haze mass at planetary limb \n and extinction efficiency')
 
     if save:
         plt.savefig(plobject.savepath + savename, format=saveformat)
     plt.show()
 
-def distribution_norm(plobject, inputlist, dens=1, save=False,
+def distribution_norm(plobject, inputaxis, inputlists, dens=1, save=False,
                 savename='plotname.png', saveformat='png'):
     """ Plot total integrated haze at terminator against particle size"""
     
-    sw = np.array(plobject.sw1 + plobject.sw2)
-    normed_sw = normalise(sw)
+    normed_sw = normalise(np.array(plobject.sw1))
     normed_kg = normalise(np.array(inputlists[dens]))
 
     fig, ax = plt.subplots(figsize=(6,4))
     plt.plot(np.array(plobject.radii), 
              normed_kg*normed_sw, c='b')
-    plt.set_ylabel('Effect size')
-    plt.set_xlabel('Particle radius [m]')
-    plt.set_xscale('log')
+    plt.ylabel('Effect size')
+    plt.xlabel('Particle radius [m]')
+    plt.xscale('log')
     plt.title('Effect size of haze by particle size')
     if save:
         plt.savefig(plobject.savepath + savename, format=saveformat)
