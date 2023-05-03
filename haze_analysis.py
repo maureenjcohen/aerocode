@@ -39,6 +39,8 @@ def main(args):
         # Calculate and add area weights for area-weighted meaning
         planet.mmr_list()
         # Create list containing only names of mmr cubes for easy iteration
+        self.rhop_lists()
+        # Creates with simulations grouped by particle density
         planet_list.append(planet)
         
     if args.compare == True:
@@ -47,26 +49,34 @@ def main(args):
         
     return planet_list
 
-def mass_main(plobjects):
+def mass_main(plobjects, showplot=False):
     """ Plot all haze mass colums and planetary limb mass versus particle size"""
     for planet in plobjects:
-        dist_axis = []
-        data_list = []
+        data_1000 = []
+        data_1262 = []
+        data_1328 = []
         for item in planet.mmrs:
             print(item)
-            coeff, power = item[-5], item[-2:]
-            particle_rad = float(coeff + 'e-' + power)
             particle_den = float(item[-10:-6])
-            dist_axis.append(particle_rad)
             titlestr = f'{planet.longname}, r={item[-5]}e-{item[-1:]}m, rho={item[-10:-6]} kg/m3'
-            haze_column = mass_column(planet, mass_loading(planet, item))            
-            plot_lonlat(planet, haze_column,title = titlestr, 
-                        unit = 'kg m$^{-2}$', save = False,
-                        savename = 'column_' + experiment + '.png', 
-                        saveformat='png')
+            haze_column = mass_column(planet, mass_loading(planet, item))
+            if showplot == True:            
+                plot_lonlat(planet, haze_column, title = titlestr, 
+                            unit = 'kg m$^{-2}$', save = False,
+                            savename = 'column_' + experiment + '.png', 
+                            saveformat='png')
             limb_total = limb_mass(planet, haze_column)
-            data_list.append(limb_total)
-        distribution(planet, dist_axis, data_list)
+            if particle_den == 1000:
+                data_1000.append(limb_total)
+            elif particle_den == 1262:
+                data_1262.append(limb_total)
+            elif particle_den == 1328:
+                data_1328.append(limb_total)
+            else:
+                print('Particle density does not match parameter space')
+        distribution(planet, [data_1000, data_1262, data_1328])
+        distribution_scatter(planet, [data_1000, data_1262, data_1328])
+        distribution_norm(planet, [data_1000, data_1262, data_1328], dens=1)
         
 def profiles_main(plobjects,save=False, saveformat='png'):
     """ Plot vertical haze profiles"""
@@ -114,6 +124,6 @@ if __name__ == "__main__":
     all_planets = main(args)
     
     ### Now run bulk analysis functions
-#    mass_main(all_planets)
+#    mass_main(all_planets, showplot=False)
     profiles_main(all_planets)
     maps_main(all_planets)
