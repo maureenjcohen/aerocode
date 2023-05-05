@@ -32,6 +32,7 @@ trapdict = {'radius' : 0.92, 'solcon' : 889, 'startemp' : 2709, 'N2' : 0.988,
             'longname' : 'TRAPPIST-1e', 'name' : 'trap',
             'datapath' : '/exports/csce/datastore/geos/users/s1144983/exoplasim_data/trap.npz',
             'savepath' : '/home/s1144983/aerosim/parameter_space/trap/',
+            'radpath' : top_dir + '/rad_space/trap_1262_5e-07_output/trap_1262_5e-07.npz',
             'sw1' : [0.00012240086441818405,
                     0.0006151318210905076,
                     0.001266000139194225,
@@ -55,32 +56,13 @@ trapdict = {'radius' : 0.92, 'solcon' : 889, 'startemp' : 2709, 'N2' : 0.988,
             'radii' : [1e-09, 5e-09, 10e-09, 30e-09, 50e-09, 60e-09, 80e-09, 100e-09, 
                       500e-09, 1000e-09]}
 
-# k2dict = {'radius' : 2.37, 'solcon' : 1722, 'startemp' : 3518, 'N2' : 0.0,
-#             'CO2' : 0.0, 'H2' : 1.0, 'rotperiod' : 33., 'gravity' : 16.3,
-#             'starrad': 0.42, 'starspec' : top_dir + 'stellarspectra/k2.dat',
-#             'name' : 'K2-18b', 'eccentricity': 0.0, 'bulk' : 2, 'msource' : 1e-13}
-
-# teedict = {'radius' : 1.02, 'solcon' : 1572, 'startemp' : 2997, 'N2' : 0.9996,
-#             'CO2' : 0.000400, 'H2' : 0.0, 'rotperiod' : 4.91, 'gravity' : 9.9,
-#             'starrad' : 0.11, 'starspec' : top_dir + 'stellarspectra/teegarden.dat',
-#             'name' : 'Teegardens Star b', 'eccentricity': 0.0, 'bulk' : 1, 'msource' : 1e-13}
-
-# kep452dict = {'radius' : 1.63, 'solcon' : 1504, 'startemp' : 5635, 'N2' : 0.9996,
-#             'CO2' : 0.000400, 'H2' : 0.0, 'rotperiod' : 385, 'gravity' : 12.2,
-#             'starrad' : 1.0, 'starspec' : top_dir + 'stellarspectra/kep452.dat',
-#             'name' : 'Kepler-452b', 'eccentricity': 0.0, 'bulk' : 1, 'msource' : 1e-13}
-
-# kep1649dict =  {'radius' : 1.06, 'solcon' : 1025, 'startemp' : 3383, 'N2' : 0.9996,
-#             'CO2' : 0.000400, 'H2' : 0.0, 'rotperiod' : 19.5, 'gravity' : 10.5,
-#             'starrad' : 0.24, 'starspec' : top_dir + 'stellarspectra/kep1649.dat',
-#             'name' : 'Kepler-1649c', 'eccentricity': 0.0, 'bulk' : 1, 'msource' : 1e-13}
-
 wolfdict = {'radius' : 1.66, 'solcon' : 1777, 'startemp' : 3408, 'N2' : 0.988,
             'CO2' : 0.01, 'CH4' : 0.002, 'H2' : 0.0, 'rotperiod' : 17.9, 'gravity' : 12.1,
             'starrad' : 0.32, 'starspec' : top_dir + 'stellarspectra/wolf.dat',
             'longname' : 'Wolf-1061c', 'eccentricity': 0.0, 'bulk' : 1,
             'datapath' : '/exports/csce/datastore/geos/users/s1144983/exoplasim_data/wolf.npz',
             'msource' : 1e-07,'name' : 'wolf',
+            'radpath' : top_dir + '/rad_space/wolf_1262_5e-07_output/wolf_1262_5e-07.npz',
             'savepath' : '/home/s1144983/aerosim/parameter_space/wolf/',
             'sw1' : [0.00014163704621179726,
                     0.0007125536179985144,
@@ -112,6 +94,7 @@ gj667dict = {'radius' : 1.77, 'solcon' : 1202, 'startemp' : 3594, 'N2' : 0.988,
             'msource' : 1e-07, 'name' : 'gj667',
             'datapath' : '/exports/csce/datastore/geos/users/s1144983/exoplasim_data/gj667.npz',
             'savepath' : '/home/s1144983/aerosim/parameter_space/gj667/',
+            'radpath' : top_dir + '/rad_space/gj667_1262_5e-07_output/gj667_1262_5e-07.npz',
             'sw1' : [0.00014466752688943883,
                     0.0007278859924406788,
                     0.0015079424133715008,
@@ -149,7 +132,7 @@ class Planet:
         self.longname = planetdict['longname']
         print(f'Welcome to {self.longname}!')
         for key, value in planetdict.items():
-            setattr(Planet, key, value) 
+            setattr(self, key, value) 
         
     def load_files(self, datadir):
         """ Load files in a data directory and combine into one dictionary"""
@@ -172,7 +155,7 @@ class Planet:
         self.data = planetdata
         self.contents = othernames + simnames
         for key, value in planetdata.items():
-            setattr(Planet, key, value)
+            setattr(self, key, value)
             
     def save_files(self):
         """ Save planetdata into a single npz file"""
@@ -183,10 +166,18 @@ class Planet:
         """ Load a single preprocessed npz file with all data"""
         planetdata = dict(np.load(filepath))
         planetnames = list(planetdata.keys())
+        for key in planetnames:
+            if key == 'mmr':
+                simfile = filepath.split('/')[-1]
+                simname = simfile[:-4]
+                simname = simname.replace('-','_')
+                planetdata[simname] = planetdata.pop('mmr')
+                planetnames = [simname if item == 'mmr' else item for item in
+                               planetnames]
         self.data = planetdata
         self.contents = planetnames
         for key, value in planetdata.items():
-            setattr(Planet, key, value)
+            setattr(self, key, value)
             
     def add_rhog(self):   
         """ Calculate density of air and add to planet sim data"""
@@ -207,8 +198,10 @@ class Planet:
     def mmr_list(self):
         """ Make list of mmr data cubes only"""
         mmrs = [item for item in self.contents if 
-                item.split('_')[0] == self.name]
+                item.split('_')[0] == self.name]            
         self.mmrs = mmrs
+        if len(self.mmrs) == 0:
+            self.mmrs = self.mmr
         
     def rhop_lists(self):
         """ Make lists containing the simulations
@@ -257,7 +250,6 @@ def mass_column(plobject, cube, month=-1, meaning=True):
     else:
         dz = np.diff(plobject.hlpr[month,:,:,:],axis=0)/(plobject.gravity*plobject.rhog[month,:,:,:])
         column = np.sum(cube[month,1:,:,:]*dz[1:,:,:],axis=0)
-        
     return column    
     
 def plot_lonlat(plobject, cube, title = 'Planet', unit='kg m$^{-2}$', 
@@ -271,7 +263,7 @@ def plot_lonlat(plobject, cube, title = 'Planet', unit='kg m$^{-2}$',
     plt.ylabel('Latitude', fontsize=14)
     cbar = plt.colorbar()
     cbar.set_label(unit, fontsize=10)
-    if save:
+    if save == True:
         plt.savefig(plobject.savepath + savename, format=saveformat)
     plt.show()
     
@@ -294,13 +286,13 @@ def distribution(plobject, inputaxis, inputlists, save=False,
             c='r', label='1262 kg/m$^3$')
     plt.scatter(np.array(inputaxis), np.array(inputlists[2]), 
             c='b', label='1328 kg/m$^3$')
-    plt.title('Total haze column at the planetary limb')
+    plt.title('Total haze mass at the planetary limb')
     plt.xlabel('Particle radius [m]')
     plt.ylabel('kg')
 #        plt.yscale('log')
     plt.xscale('log')
     plt.legend()
-    if save:
+    if save == True:
         plt.savefig(plobject.savepath + savename, format=saveformat)
     plt.show()
     
@@ -331,7 +323,7 @@ def distribution_scatter(plobject, inputaxis, inputlists, save=False,
     plt.legend(lns, labs)
     plt.title('Total haze mass at planetary limb \n and extinction efficiency')
 
-    if save:
+    if save == True:
         plt.savefig(plobject.savepath + savename, format=saveformat)
     plt.show()
 
@@ -349,7 +341,7 @@ def distribution_norm(plobject, inputaxis, inputlists, dens=1, save=False,
     plt.xlabel('Particle radius [m]')
     plt.xscale('log')
     plt.title('Effect size of haze by particle size')
-    if save:
+    if save == True:
         plt.savefig(plobject.savepath + savename, format=saveformat)
     plt.show()    
     
@@ -393,7 +385,7 @@ def compare_profiles(plobject, pdensity=1262, proflat=16, proflon=48,
 #    plt.xlim(0,plobject.msource)
     plt.legend(fontsize='small')
     fig.tight_layout()
-    if save:
+    if save == True:
         plt.savefig(plobject.savepath + savename, format=saveformat)
     plt.show()
     
@@ -417,19 +409,17 @@ def mmr_map(plobject, item, level=4, cpower=7,
     cbar = plt.colorbar()
     cbar.ax.set_title('$10^{-7}$ kg/kg', size=10)
     fig.tight_layout()
+    if save == True:
+        plt.savefig(plobject.savepath + savename, format=saveformat)
     plt.show()  
     
     return
     
 def compare_planets(plobjects, ndata=3, level=5, n=2, qscale=10):
     """ Compare climatology of all planets in parameter space"""
-    names = []
-    for plobject in plobjects:
-        plname = plobject.longname
-        names.append(plname)
     redblu = mpl_cm.get_cmap('coolwarm')
     hot = mpl_cm.get_cmap('hot')
-    
+
     fig, ax = plt.subplots(figsize=(16, 22), nrows=5, ncols=ndata)
     for i in range(ndata):
         plobject = plobjects[i]
@@ -438,10 +428,10 @@ def compare_planets(plobjects, ndata=3, level=5, n=2, qscale=10):
                np.mean(plobject.ts, axis=0), 
                levels=np.arange(100, 400, 20),
                cmap=hot)
-        ax[0,i].set_title(f'{plobject.longname}', fontsize=14)
-        fig.colorbar(surf, orientation='vertical')#        
-        ax[0, i].set_xlabel('Longitude [deg]', fontsize=14)
-        ax[0, i].set_ylabel('Surface temperature [K] \n Latitude [deg]', fontsize=14)
+        ax[0,i].set_title(f'{plobject.longname} \n Longitude [deg]', fontsize=10)
+        fig.colorbar(surf, ax=ax[0, i], orientation='vertical')        
+#        ax[0, 0].set_xlabel('Longitude [deg]', fontsize=10)
+        ax[0, 0].set_ylabel('Surface temperature [K] \n Latitude [deg]', fontsize=10)
         # Air temperature profile
         ax[1, i].plot(np.mean(plobject.ta[:,:,16,32], axis=0),
                       np.mean(plobject.flpr[:,:,16,32]/100,axis=0),
@@ -449,9 +439,10 @@ def compare_planets(plobjects, ndata=3, level=5, n=2, qscale=10):
         ax[1, i].plot(np.mean(plobject.ta[:,:,16,0], axis=0),
                       np.mean(plobject.flpr[:,:,16,0]/100,axis=0),
                       color='b', label='Antistellar')
+        ax[1, i].invert_yaxis()
         ax[1, i].legend()
-        ax[1, i].set_xlabel('Temperature [K]', fontsize=14)
-        ax[1, i].set_ylabel('Temperature profile \n Pressure [mbar]', fontsize=14)
+#        ax[1, i].set_xlabel('Temperature [K]', fontsize=10)
+        ax[1, 0].set_ylabel('Temperature [K] profile \n Pressure [mbar]', fontsize=10)
         # Water vapour profile
         ax[2, i].plot(np.mean(plobject.hus[:,:,16,32], axis=0),
                       np.mean(plobject.flpr[:,:,16,32]/100,axis=0),
@@ -459,16 +450,18 @@ def compare_planets(plobjects, ndata=3, level=5, n=2, qscale=10):
         ax[2, i].plot(np.mean(plobject.hus[:,:,16,0], axis=0),
                       np.mean(plobject.flpr[:,:,16,0]/100,axis=0),
                       color='b', label='Antistellar')
+        ax[2, i].invert_yaxis()
         ax[2, i].legend()
-        ax[2, i].set_xlabel('Specific humidity [kg/kg]', fontsize=14)
-        ax[2, i].set_ylabel('Vapour profile \n Pressure [mbar]', fontsize=14)
+#        ax[2, i].set_xlabel('Specific humidity [kg/kg]', fontsize=10)
+        ax[2, 0].set_ylabel('Vapour profile [kg/kg] \n Pressure [mbar]', fontsize=10)
         # ZMZW
         cont = ax[3, i].contourf(plobject.lat, np.mean(plobject.flpr[:,:,16,32], axis=0), 
                np.mean(plobject.ua, axis=(0,3)), levels=np.arange(-60, 140, 20), 
                cmap=redblu, norm=TwoSlopeNorm(0))
-        ax[3, i].set_ylabel('Zonal mean zonal wind [m/s] \n Pressure [mbar]', fontsize=14)
-        ax[3, i].set_xlabel('Latitude [degrees]', fontsize=14)
-        fig.colorbar(cont, orientation='vertical')
+        ax[3, i].invert_yaxis()
+        ax[3, 0].set_ylabel('Zonal mean zonal wind [m/s] \n Pressure [mbar]', fontsize=10)
+#        ax[3, i].set_xlabel('Latitude [degrees]', fontsize=10)
+        fig.colorbar(cont, ax=ax[3, i], orientation='vertical')
         # Winds
         X, Y = np.meshgrid(np.arange(0, len(plobject.lon)), np.arange(0, len(plobject.lat)))
         q1 = ax[4, i].quiver(X[::n, ::n], Y[::n, ::n], 
@@ -481,8 +474,8 @@ def compare_planets(plobjects, ndata=3, level=5, n=2, qscale=10):
                     ('180W', '90W', '0','90E','180E'))
         ax[4, i].set_yticks((0, 8, 16, 24, 32 ),
                     ('90S', '45S', '0', '45N', '90N'))
-        ax[4, i].set_xlabel('Longitude [deg]', fontsize=14)
-        ax[4, i].set_ylabel('Horizontal and vertical winds \n Latitude [deg]', fontsize=14)
+#        ax[4, i].set_xlabel('Longitude [deg]', fontsize=14)
+        ax[4, 0].set_ylabel('Horizontal and vertical winds \n Latitude [deg]', fontsize=10)
     plt.show()
 
 
@@ -642,15 +635,15 @@ def wind_vectors(data, time_slice=-1, level=5, n=2, qscale=10, meaning=True):
     X, Y = np.meshgrid(np.arange(0, nlon), np.arange(0, nlat))
     
     fig, ax = plt.subplots(figsize=(8.5, 5))
-    plt.imshow(w*1e02, cmap='RdBu_r', origin='lower')
+    plt.imshow(w[level,:,:]*1e02, cmap='coolwarm', origin='lower', norm=TwoSlopeNorm(0))
     cbar = plt.colorbar()
-    cbar.set_label('$10^{-2$ m/s', loc='center')
+    cbar.set_label('$10^{-2}$ m/s', loc='center')
     
     q1 = ax.quiver(X[::n, ::n], Y[::n, ::n], u[level, ::n, ::n],
                    -v[level, ::n, ::n], scale_units='xy', scale=qscale)
     ax.quiverkey(q1, X=0.9, Y=1.05, U=qscale*2, label='%s m/s' %str(qscale*2),
                  labelpos='E', coordinates='axes')
-    plt.title('%s, %s, h=%s mbar' %
+    plt.title('%s, %s, h=%s mbar \n' %
               (titleterm, titletime, np.round(heights[level],0)), fontsize=14)
     plt.xticks((0, 16, 32, 48, 64), 
                 ('180W', '90W', '0','90E','180E'))
