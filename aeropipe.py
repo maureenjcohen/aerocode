@@ -499,15 +499,38 @@ def tau(plobject, item, qext, prad, time_slice=-1, meaning=True):
     """ Calculate optical depth in the line of sight when viewed during transit
         Considers only the actual terminator and not the 3-D geometry   """
     if meaning == True:
-        nrho, nsource = mmr2n(np.mean(plobject.data[item], axis=0))
+        nrho, nsource = mmr2n(plobject, item=item)
+        nrho = np.mean(nrho, axis=0)
+        heights = np.mean(plobject.flpr, axis=0)
     else:
-        nrho, nsource = mmr2n(plobject.data[item][time_slice,:,:,:])
-    west = nrho[:,16,:]*qext*np.pi*(prad**2)*dx[16,:]
-    east = nrho[:,48,:]*qext*np.pi*(prad**2)*dx[48,:]
-    limb = np.concaenate((west, east[::-1]), axis=1)
+        nrho, nsource = mmr2n(plobject, item=item)
+        nrho = nrho[time_slice,:,:,:]
+        heights = plobject.flpr[time_slice,:,:,:]
+        
+    west = nrho[:,:,16]*qext*np.pi*(prad**2)*plobject.dx[:,16]
+    east = nrho[:,:,48]*qext*np.pi*(prad**2)*plobject.dx[:,48]
+    limb = np.concatenate((east, west[::-1]), axis=1)
     
+    heights = np.mean(heights, axis=(1,2))/100
     
-    return limb
+    plt.contourf(plobject.lat,heights,limb[::-1,:32],cmap='plasma')
+    plt.colorbar()
+    plt.show()
+
+    [r, th] = np.meshgrid(heights, np.radians(np.arange(0,64)*5.75))
+    fig = plt.figure(figsize=(6,6))
+    ax = fig.add_subplot(111, polar=True)
+    ax.set_theta_zero_location('N')
+    ax.set_theta_direction(-1)
+    
+    contf = ax.contourf(th, r, limb.T, levels=np.arange(0,3.3,0.2), cmap='plasma')
+    ax.set_xticklabels(['90N','45N','eq.','45S','90S','45S','eq.','45N'])
+    ax.set_rlim(bottom=heights[-1], top=heights[0]+1)
+    ax.set_title('Haze optical depth at planetary limb')
+    plt.colorbar(contf, pad=0.1, orientation='vertical')
+    plt.show()   
+    
+    return
 
 ### Old functions, maybe delete after fully cannibalised    
 
