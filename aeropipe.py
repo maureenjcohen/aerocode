@@ -194,6 +194,8 @@ class Planet:
         dx = dlon*rad*np.cos(np.deg2rad(ylat))
         area = dy*dx
         self.area = area
+        self.dy = dy
+        self.dx = dx
         
     def mmr_list(self):
         """ Make list of mmr data cubes only"""
@@ -478,11 +480,6 @@ def compare_planets(plobjects, ndata=3, level=5, n=2, qscale=10):
         ax[4, 0].set_ylabel('Horizontal and vertical winds \n Latitude [deg]', fontsize=10)
     plt.show()
 
-
-
-
-
-
     
 def mmr2n(plobject, item):
     """ Convert mass mixing ratio (kg/kg) to number density (particles/m3)"""
@@ -498,7 +495,19 @@ def mmr2n(plobject, item):
     nsource = plobject.msource*(1/particle_mass)*np.mean(plobject.rhog[:,0,16,32], axis=0)
     return outcube, nsource
     
-
+def tau(plobject, item, qext, prad, time_slice=-1, meaning=True):
+    """ Calculate optical depth in the line of sight when viewed during transit
+        Considers only the actual terminator and not the 3-D geometry   """
+    if meaning == True:
+        nrho, nsource = mmr2n(np.mean(plobject.data[item], axis=0))
+    else:
+        nrho, nsource = mmr2n(plobject.data[item][time_slice,:,:,:])
+    west = nrho[:,16,:]*qext*np.pi*(prad**2)*dx[16,:]
+    east = nrho[:,48,:]*qext*np.pi*(prad**2)*dx[48,:]
+    limb = np.concaenate((west, east[::-1]), axis=1)
+    
+    
+    return limb
 
 ### Old functions, maybe delete after fully cannibalised    
 
