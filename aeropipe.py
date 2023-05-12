@@ -162,18 +162,19 @@ class Planet:
         np.savez(top_dir + self.name + '.npz', 
                 **{name:value for name,value in zip(self.contents, self.data.values())})
     
-    def load_data(self, filepath):
+    def load_data(self, filepath, pspace=True):
         """ Load a single preprocessed npz file with all data"""
         planetdata = dict(np.load(filepath))
         planetnames = list(planetdata.keys())
-        for key in planetnames:
-            if key == 'mmr':
-                simfile = filepath.split('/')[-1]
-                simname = simfile[:-4]
-                simname = simname.replace('-','_')
-                planetdata[simname] = planetdata.pop('mmr')
-                planetnames = [simname if item == 'mmr' else item for item in
-                               planetnames]
+        if pspace == True:
+            for key in planetnames:
+                if key == 'mmr':
+                    simfile = filepath.split('/')[-1]
+                    simname = simfile[:-4]
+                    simname = simname.replace('-','_')
+                    planetdata[simname] = planetdata.pop('mmr')
+                    planetnames = [simname if item == 'mmr' else item for item in
+                                   planetnames]
         self.data = planetdata
         self.contents = planetnames
         for key, value in planetdata.items():
@@ -267,7 +268,9 @@ def plot_lonlat(plobject, cube, title = 'Planet', unit='kg m$^{-2}$',
     cbar.set_label(unit, fontsize=10)
     if save == True:
         plt.savefig(plobject.savepath + savename, format=saveformat)
-    plt.show()
+        plt.close()
+    else:
+        plt.show()
     
 def limb_mass(plobject, inputcol):
     """ Calculate total haze mass at planetary limb"""
@@ -296,7 +299,9 @@ def distribution(plobject, inputaxis, inputlists, save=False,
     plt.legend()
     if save == True:
         plt.savefig(plobject.savepath + savename, format=saveformat)
-    plt.show()
+        plt.close()
+    else:
+        plt.show()
     
 def distribution_scatter(plobject, inputaxis, inputlists, save=False,
                 savename='plotname.png', saveformat='png'):
@@ -327,7 +332,9 @@ def distribution_scatter(plobject, inputaxis, inputlists, save=False,
 
     if save == True:
         plt.savefig(plobject.savepath + savename, format=saveformat)
-    plt.show()
+        plt.close()
+    else:
+        plt.show()
 
 def distribution_norm(plobject, inputaxis, inputlists, dens=1, save=False,
                 savename='plotname.png', saveformat='png'):
@@ -345,7 +352,9 @@ def distribution_norm(plobject, inputaxis, inputlists, dens=1, save=False,
     plt.title('Effect size of haze by particle size')
     if save == True:
         plt.savefig(plobject.savepath + savename, format=saveformat)
-    plt.show()    
+        plt.close()
+    else:
+        plt.show()    
     
 def compare_profiles(plobject, pdensity=1262, proflat=16, proflon=48,
                     titleloc='eastern terminator', save=False,
@@ -393,7 +402,7 @@ def compare_profiles(plobject, pdensity=1262, proflat=16, proflon=48,
     
     return
     
-def mmr_map(plobject, item, level=4, cpower=7, 
+def mmr_map(plobject, item, level=5, cpower=7, 
             save=False, savename='plotname.png', 
             saveformat='png'):
     
@@ -413,27 +422,49 @@ def mmr_map(plobject, item, level=4, cpower=7,
     fig.tight_layout()
     if save == True:
         plt.savefig(plobject.savepath + savename, format=saveformat)
-    plt.show()  
+        plt.close()
+    else:
+        plt.show()  
     
     return
     
-def compare_planets(plobjects, ndata=3, level=5, n=2, qscale=10):
+def compare_planets(plobjects, ndata=3, level=5, n=2, qscale=10, fsize=16,
+                    whichlevs = 'trap', save=False, savename='compclim.png',
+                    saveformat='png'):
     """ Compare climatology of all planets in parameter space"""
     redblu = mpl_cm.get_cmap('coolwarm')
     hot = mpl_cm.get_cmap('hot')
+    
+    if whichlevs == 'trap':
+        surflevs = np.arange(140, 300, 10) # Surf temp
+        zlevs = np.arange(-60, 81, 10) # ZMZW
+        wlevs = np.arange(-0.08, 0.61, 0.01) # Vertical wind
+        tlims = (140, 300) # T profile
+        vlims = (-0.001, 0.008) # V profile
+    elif whichlevs == 'wolf':
+        surflevs = np.arange(230, 350, 10) # Surf temp
+        zlevs = np.arange(-20, 100, 10) # ZMZW
+        wlevs = np.arange(-0.15, 0.61, 0.01) # Vertical wind 
+        tlims = (240, 330) # T profile
+        vlims = (-0.001, 0.1) # V profile
+    else:
+        print(f'{whichlevs} is not a valid keyword')
 
-    fig, ax = plt.subplots(figsize=(16, 22), nrows=5, ncols=ndata)
+    fig, ax = plt.subplots(figsize=(14, 20), nrows=5, ncols=ndata)
+    fig.tight_layout(h_pad=4, w_pad=4)
     for i in range(ndata):
         plobject = plobjects[i]
         #Surface temperature
         surf = ax[0, i].contourf(plobject.lon, plobject.lat,
                np.mean(plobject.ts, axis=0), 
-               levels=np.arange(100, 400, 20),
+               levels=surflevs,
                cmap=hot)
-        ax[0,i].set_title(f'{plobject.longname} \n Longitude [deg]', fontsize=10)
-        fig.colorbar(surf, ax=ax[0, i], orientation='vertical')        
-#        ax[0, 0].set_xlabel('Longitude [deg]', fontsize=10)
-        ax[0, 0].set_ylabel('Surface temperature [K] \n Latitude [deg]', fontsize=10)
+        ax[0,0].set_title(f'{plobject.longname}', fontsize=fsize+2)
+        ax[0,1].set_title(f'{plobject.longname}, hazy', fontsize=fsize+2)
+        sbar = fig.colorbar(surf, ax=ax[0, i], orientation='vertical', fraction=0.05) 
+        sbar.set_label('K', loc='center', fontsize=fsize)
+        ax[0, i].set_xlabel('Longitude [deg]', fontsize=fsize)
+        ax[0, 0].set_ylabel('Surface temperature [K] \n Latitude [deg]', fontsize=fsize)
         # Air temperature profile
         ax[1, i].plot(np.mean(plobject.ta[:,:,16,32], axis=0),
                       np.mean(plobject.flpr[:,:,16,32]/100,axis=0),
@@ -442,9 +473,10 @@ def compare_planets(plobjects, ndata=3, level=5, n=2, qscale=10):
                       np.mean(plobject.flpr[:,:,16,0]/100,axis=0),
                       color='b', label='Antistellar')
         ax[1, i].invert_yaxis()
-        ax[1, i].legend()
-#        ax[1, i].set_xlabel('Temperature [K]', fontsize=10)
-        ax[1, 0].set_ylabel('Temperature [K] profile \n Pressure [mbar]', fontsize=10)
+        ax[1, i].set_xlim(tlims[0], tlims[1])
+        ax[1, i].legend(fontsize=fsize)
+        ax[1, i].set_xlabel('Temperature [K]', fontsize=fsize)
+        ax[1, 0].set_ylabel('Temperature profile [K] \n Pressure [mbar]', fontsize=fsize)
         # Water vapour profile
         ax[2, i].plot(np.mean(plobject.hus[:,:,16,32], axis=0),
                       np.mean(plobject.flpr[:,:,16,32]/100,axis=0),
@@ -453,32 +485,45 @@ def compare_planets(plobjects, ndata=3, level=5, n=2, qscale=10):
                       np.mean(plobject.flpr[:,:,16,0]/100,axis=0),
                       color='b', label='Antistellar')
         ax[2, i].invert_yaxis()
-        ax[2, i].legend()
-#        ax[2, i].set_xlabel('Specific humidity [kg/kg]', fontsize=10)
-        ax[2, 0].set_ylabel('Vapour profile [kg/kg] \n Pressure [mbar]', fontsize=10)
+        ax[2, i].set_xlim(vlims[0], vlims[1])
+        ax[2, i].legend(fontsize=fsize)
+        ax[2, i].set_xlabel('Specific humidity [kg/kg]', fontsize=fsize)
+        ax[2, 0].set_ylabel('Vapour profile [kg/kg] \n Pressure [mbar]', fontsize=fsize)
         # ZMZW
-        cont = ax[3, i].contourf(plobject.lat, np.mean(plobject.flpr[:,:,16,32], axis=0), 
-               np.mean(plobject.ua, axis=(0,3)), levels=np.arange(-60, 140, 20), 
+        cont = ax[3, i].contourf(plobject.lat, np.mean(plobject.flpr[:,:,16,32]/100, axis=0), 
+               np.mean(plobject.ua, axis=(0,3)), levels=zlevs, 
                cmap=redblu, norm=TwoSlopeNorm(0))
         ax[3, i].invert_yaxis()
-        ax[3, 0].set_ylabel('Zonal mean zonal wind [m/s] \n Pressure [mbar]', fontsize=10)
-#        ax[3, i].set_xlabel('Latitude [degrees]', fontsize=10)
-        fig.colorbar(cont, ax=ax[3, i], orientation='vertical')
+        ax[3, 0].set_ylabel('Zonal mean zonal wind [m/s] \n Pressure [mbar]', fontsize=fsize)
+        ax[3, i].set_xlabel('Latitude [deg]', fontsize=fsize)
+        zbar = fig.colorbar(cont, ax=ax[3, i], orientation='vertical', fraction=0.05)
+        zbar.set_label('m/s', loc='center', fontsize=fsize)
         # Winds
         X, Y = np.meshgrid(np.arange(0, len(plobject.lon)), np.arange(0, len(plobject.lat)))
+        w = ax[4, i].contourf(np.mean(plobject.wa[level,:,:]*1e03,axis=0), 
+                   cmap='coolwarm', levels=wlevs, norm=TwoSlopeNorm(0))
+        wbar = fig.colorbar(w, ax=ax[4, i], orientation='vertical', fraction=0.05)
+        wbar.set_label('$10^{-3}$ m/s', loc='center', fontsize=fsize)
+        
         q1 = ax[4, i].quiver(X[::n, ::n], Y[::n, ::n], 
                             np.mean(plobject.ua[:, level, ::n, ::n], axis=0),
                             -np.mean(plobject.va[:, level, ::n, ::n], axis=0),
                             scale_units='xy', scale=qscale)
         ax[4, i].quiverkey(q1, X=0.9, Y=1.05, U=qscale*2, label='%s m/s' %str(qscale*2),
                      labelpos='E', coordinates='axes')
+        ax[4,i].set_title(f'{int(np.mean(plobject.flpr[:,level,:,:])/100)} mbar', fontsize=fsize)
         ax[4, i].set_xticks((0, 16, 32, 48, 64), 
                     ('180W', '90W', '0','90E','180E'))
         ax[4, i].set_yticks((0, 8, 16, 24, 32 ),
                     ('90S', '45S', '0', '45N', '90N'))
-#        ax[4, i].set_xlabel('Longitude [deg]', fontsize=14)
-        ax[4, 0].set_ylabel('Horizontal and vertical winds \n Latitude [deg]', fontsize=10)
-    plt.show()
+        ax[4, i].set_xlabel('Longitude [deg]', fontsize=fsize)
+        ax[4, 0].set_ylabel('Horizontal and vertical winds [m/s] \n Latitude [deg]', fontsize=fsize)
+        ax[4, i].set_xlabel('Longitude [deg]', fontsize=fsize)
+    if save == True:
+        plt.savefig(plobjects[0].savepath + savename, format=saveformat)
+        plt.close()
+    else:
+        plt.show()
 
     
 def mmr2n(plobject, item):
@@ -495,7 +540,8 @@ def mmr2n(plobject, item):
     nsource = plobject.msource*(1/particle_mass)*np.mean(plobject.rhog[:,0,16,32], axis=0)
     return outcube, nsource
     
-def tau(plobject, item, qext, prad, time_slice=-1, meaning=True):
+def tau(plobject, item, qext, prad, time_slice=-1, meaning=True,
+        save=False, savename='plotname.png', saveformat='png'):
     """ Calculate optical depth in the line of sight when viewed during transit
         Considers only the actual terminator and not the 3-D geometry   """
     if meaning == True:
@@ -528,7 +574,11 @@ def tau(plobject, item, qext, prad, time_slice=-1, meaning=True):
     ax.set_rlim(bottom=heights[-1], top=heights[0]+1)
     ax.set_title('Haze optical depth at planetary limb')
     plt.colorbar(contf, pad=0.1, orientation='vertical')
-    plt.show()   
+    if save == True:
+        plt.savefig(savename, format=saveformat)
+        plt.close()
+    else:
+        plt.show()   
     
     return
 
@@ -645,31 +695,36 @@ def surface_temp(data):
     return
 
 
-def wind_vectors(data, time_slice=-1, level=5, n=2, qscale=10, meaning=True):
+def wind_vectors(plobject, time_slice=-1, level=5, n=2, qscale=10, meaning=True,
+                 save=False, savename='wind_vectors', saveformat='png'):
     
+    data = plobject.data
     if meaning==True:
         u = np.mean(data['ua'],axis=0) # Eastward wind
         v = np.mean(data['va'],axis=0) # Northward wind
         w = np.mean(data['wa'],axis=0) # Upward wind
+        titletime = 'long-term mean'
+
     else:
         u = data['ua'][time_slice,:,:,:]
         v = data['va'][time_slice,:,:,:]
         w = data['wa'][time_slice,:,:,:]
+        titletime = 'final'
+
 
     nlon = len(data['lon'])
     nlat = len(data['lat'])
     levels = data['lev']
     surfpress = np.mean(data['ps'], axis=0)
     heights = levels*surfpress[16,32]
-    titleterm = 'Horizonal wind'
-    titletime = 'long-term mean'
+    titleterm = 'Horizonal and vertical wind'
     
     X, Y = np.meshgrid(np.arange(0, nlon), np.arange(0, nlat))
     
-    fig, ax = plt.subplots(figsize=(8.5, 5))
-    plt.imshow(w[level,:,:]*1e02, cmap='coolwarm', origin='lower', norm=TwoSlopeNorm(0))
+    fig, ax = plt.subplots(figsize=(8, 5))
+    plt.imshow(w[level,:,:]*1e03, cmap='coolwarm', origin='lower', norm=TwoSlopeNorm(0))
     cbar = plt.colorbar()
-    cbar.set_label('$10^{-2}$ m/s', loc='center')
+    cbar.set_label('$10^{-3}$ m/s', loc='center')
     
     q1 = ax.quiver(X[::n, ::n], Y[::n, ::n], u[level, ::n, ::n],
                    -v[level, ::n, ::n], scale_units='xy', scale=qscale)
@@ -683,7 +738,11 @@ def wind_vectors(data, time_slice=-1, level=5, n=2, qscale=10, meaning=True):
                 ('90S', '45S', '0', '45N', '90N'))
     plt.xlabel('Longitude', fontsize=14)
     plt.ylabel('Latitude', fontsize=14)
-    plt.show()
+    if save == True:
+        plt.savefig(plobject.savepath + savename, format=saveformat)   
+        plt.close()
+    else:
+        plt.show()
     
     return
 
@@ -722,8 +781,10 @@ def cloud_cover(data, time_slice=-1, level=5, meaning=False, total_cloud=False):
     return
 
 
-def tvprofile(data, time_slice=-1, select='t', meaning=True):
+def vert_profile(plobject, time_slice=-1, select='t', meaning=True,
+                 save=False, savename='profiles.png', saveformat='png'):
     
+    data = plobject.data
     lats = data['lat']
     lons = data['lon']
     levels = data['lev']
@@ -739,8 +800,13 @@ def tvprofile(data, time_slice=-1, select='t', meaning=True):
         cube = data['hus']
         titleterm = 'Vapour'
         unit = 'kg/kg'
+    elif select == 'mmr':
+        cube = data['mmr']
+        titleterm = 'Haze'
+        unit = 'kg/kg'
     else:
-        print('Select t for air temperature or v for specific humidity.')
+        print('Select t for air temperature, v for specific humidity, or \
+              mmr for mass mixing ratio.')
     
     if meaning == True:
         plotme = np.mean(cube, axis=0)
@@ -757,7 +823,11 @@ def tvprofile(data, time_slice=-1, select='t', meaning=True):
     plt.ylabel('Height [mbar]', fontsize=14)
     plt.xlabel(f'{titleterm} [{unit}]', fontsize=14)
     plt.legend()
-    plt.show()  
+    if save == True:
+        plt.savefig(plobject.savepath + savename, format=saveformat)
+        plt.close()
+    else:
+        plt.show()  
     
     return
 
