@@ -255,16 +255,20 @@ def mass_column(plobject, cube, month=-1, meaning=True):
         column = np.sum(cube[month,1:,:,:]*dz[1:,:,:],axis=0)
     return column    
     
-def plot_lonlat(plobject, cube, title = 'Planet', unit='kg m$^{-2}$', 
+def plot_column(plobject, cube, title = 'Planet', unit='$10^{-5}$ kg m$^{-2}$',
+                cpower=5,
                 colors='plasma', save=False, savename='plotname.png', 
                 saveformat='png'):
-    """ Make a lon-lat contourfill plot of the input data cube"""
-    plt.contourf(plobject.lon, plobject.lat, cube, cmap=colors)
+    """ Make a lon-lat contourfill plot of the haze column"""
+    coeff = 10**cpower
+    fig, ax = plt.subplots(figsize=(8,5))
+    plt.contourf(plobject.lon, plobject.lat, cube*coeff, 
+                 levels=np.arange(0.15, 2.26, 0.1), cmap=colors)
     plt.title(title + '\n' + 'Total haze column excluding source',
               fontsize=14)
-    plt.xlabel('Longitude', fontsize=14)
-    plt.ylabel('Latitude', fontsize=14)
-    cbar = plt.colorbar()
+    plt.xlabel('Longitude [deg]', fontsize=14)
+    plt.ylabel('Latitude [deg]', fontsize=14)
+    cbar = plt.colorbar(orientation='vertical', fraction=0.05)
     cbar.set_label(unit, fontsize=10)
     if save == True:
         plt.savefig(plobject.savepath + savename, format=saveformat)
@@ -408,17 +412,17 @@ def mmr_map(plobject, item, level=5, cpower=7,
     
     coeff = 10**cpower
     
-    fig, ax = plt.subplots(figsize=(7,5))    
+    fig, ax = plt.subplots(figsize=(8,5))    
     plt.contourf(plobject.lon, plobject.lat, 
                 np.mean(plobject.data[item][:,level,:,:],axis=0)*coeff,
-#                 np.arange(0,1.05,0.1),
+                 levels=np.arange(0.0, 0.021, 0.001),
                  cmap='plasma')
     plt.title('Mass mixing ratio at %s mbar' % 
               (np.round(np.mean(plobject.flpr[:,level,16,32], axis=0)/100)))
-    plt.xlabel('Longitude')
-    plt.ylabel('Latitude')
-    cbar = plt.colorbar()
-    cbar.ax.set_title('$10^{-7}$ kg/kg', size=10)
+    plt.xlabel('Longitude [deg]')
+    plt.ylabel('Latitude [deg]')
+    cbar = plt.colorbar(orientation='vertical', fraction=0.05)
+    cbar.set_label('$10^{-7}$ kg/kg', loc='center')
     fig.tight_layout()
     if save == True:
         plt.savefig(plobject.savepath + savename, format=saveformat)
@@ -526,13 +530,17 @@ def compare_planets(plobjects, ndata=3, level=5, n=2, qscale=10, fsize=16,
         plt.show()
 
     
-def mmr2n(plobject, item):
+def mmr2n(plobject, item, partrad=5e-07, pdens=1272):
     """ Convert mass mixing ratio (kg/kg) to number density (particles/m3)"""
     mmr_raw = plobject.data[item] # in kg/kg
     
-    coeff, power = item[-5], item[-2:]
-    particle_rad = float(coeff + 'e-' + power)
-    particle_den = float(item[-10:-6])
+    if item == 'mmr':
+        particle_rad = partrad
+        particle_den = pdens
+    else:
+        coeff, power = item[-5], item[-2:]
+        particle_rad = float(coeff + 'e-' + power)
+        particle_den = float(item[-10:-6])
     sphere_vol = (4/3)*np.pi*(particle_rad**3)
     particle_mass = sphere_vol*particle_den
     
@@ -540,7 +548,7 @@ def mmr2n(plobject, item):
     nsource = plobject.msource*(1/particle_mass)*np.mean(plobject.rhog[:,0,16,32], axis=0)
     return outcube, nsource
     
-def tau(plobject, item, qext, prad, time_slice=-1, meaning=True,
+def tau(plobject, item, qext, prad, pdens, time_slice=-1, meaning=True,
         save=False, savename='plotname.png', saveformat='png'):
     """ Calculate optical depth in the line of sight when viewed during transit
         Considers only the actual terminator and not the 3-D geometry   """
@@ -553,29 +561,29 @@ def tau(plobject, item, qext, prad, time_slice=-1, meaning=True,
         nrho = nrho[time_slice,:,:,:]
         heights = plobject.flpr[time_slice,:,:,:]
         
-    west = nrho[:,:,16]*qext*np.pi*(prad**2)*plobject.dx[:,16]
-    east = nrho[:,:,48]*qext*np.pi*(prad**2)*plobject.dx[:,48]
-    limb = np.concatenate((east, west[::-1]), axis=1)
+    west = nrho[:,:,16]*qext*np.pi*(prad**2)*plobject.dx[16,16]
+    east = nrho[:,:,48]*qext*np.pi*(prad**2)*plobject.dx[16,16]
+    limb = np.concatenate((east, west), axis=1)
     
     heights = np.mean(heights, axis=(1,2))/100
-    
-    plt.contourf(plobject.lat,heights,limb[::-1,:32],cmap='plasma')
-    plt.colorbar()
-    plt.show()
 
     [r, th] = np.meshgrid(heights, np.radians(np.arange(0,64)*5.75))
-    fig = plt.figure(figsize=(6,6))
+    fig = plt.figure(figsize=(5,5))
     ax = fig.add_subplot(111, polar=True)
     ax.set_theta_zero_location('N')
     ax.set_theta_direction(-1)
+    ax.set_rorigin(1200)
     
-    contf = ax.contourf(th, r, limb.T, levels=np.arange(0,3.3,0.2), cmap='plasma')
+    contf = ax.contourf(th, r, limb.T, levels=np.arange(0,5.1,0.2), cmap='plasma')
     ax.set_xticklabels(['90N','45N','eq.','45S','90S','45S','eq.','45N'])
     ax.set_rlim(bottom=heights[-1], top=heights[0]+1)
-    ax.set_title('Haze optical depth at planetary limb')
-    plt.colorbar(contf, pad=0.1, orientation='vertical')
+    ax.set_title('Equivalent haze optical depth \n at planetary limb')
+    plt.colorbar(contf, pad=0.1, orientation='vertical', fraction=0.05)
+    rlabels = ax.get_ymajorticklabels()
+    for label in rlabels:
+        label.set_color('white')
     if save == True:
-        plt.savefig(savename, format=saveformat)
+        plt.savefig(plobject.savepath + savename, format=saveformat)
         plt.close()
     else:
         plt.show()   
@@ -711,7 +719,6 @@ def wind_vectors(plobject, time_slice=-1, level=5, n=2, qscale=10, meaning=True,
         w = data['wa'][time_slice,:,:,:]
         titletime = 'final'
 
-
     nlon = len(data['lon'])
     nlat = len(data['lat'])
     levels = data['lev']
@@ -719,25 +726,28 @@ def wind_vectors(plobject, time_slice=-1, level=5, n=2, qscale=10, meaning=True,
     heights = levels*surfpress[16,32]
     titleterm = 'Horizonal and vertical wind'
     
-    X, Y = np.meshgrid(np.arange(0, nlon), np.arange(0, nlat))
+    X, Y = np.meshgrid(np.arange(0, len(plobject.lon)), np.arange(0, len(plobject.lat)))
+    #np.meshgrid(np.arange(0, nlon), np.arange(0, nlat))
     
     fig, ax = plt.subplots(figsize=(8, 5))
-    plt.imshow(w[level,:,:]*1e03, cmap='coolwarm', origin='lower', norm=TwoSlopeNorm(0))
-    cbar = plt.colorbar()
+    w = ax.contourf(w[level,:,:]*1e03, cmap='coolwarm', 
+                 levels=np.arange(-0.25, 1.26, 0.05), norm=TwoSlopeNorm(0))
+    cbar = plt.colorbar(w, orientation='vertical', fraction=0.05)
     cbar.set_label('$10^{-3}$ m/s', loc='center')
     
     q1 = ax.quiver(X[::n, ::n], Y[::n, ::n], u[level, ::n, ::n],
                    -v[level, ::n, ::n], scale_units='xy', scale=qscale)
     ax.quiverkey(q1, X=0.9, Y=1.05, U=qscale*2, label='%s m/s' %str(qscale*2),
                  labelpos='E', coordinates='axes')
-    plt.title('%s, %s, h=%s mbar \n' %
+    plt.title('%s, %s \n %s mbar' %
               (titleterm, titletime, np.round(heights[level],0)), fontsize=14)
     plt.xticks((0, 16, 32, 48, 64), 
                 ('180W', '90W', '0','90E','180E'))
     plt.yticks((0, 8, 16, 24, 32 ),
                 ('90S', '45S', '0', '45N', '90N'))
-    plt.xlabel('Longitude', fontsize=14)
-    plt.ylabel('Latitude', fontsize=14)
+    plt.xlabel('Longitude [deg]', fontsize=14)
+    plt.ylabel('Latitude [deg]', fontsize=14)
+    ax.axis('tight')
     if save == True:
         plt.savefig(plobject.savepath + savename, format=saveformat)   
         plt.close()
@@ -796,14 +806,17 @@ def vert_profile(plobject, time_slice=-1, select='t', meaning=True,
         cube = data['ta']
         titleterm = 'Temperature'
         unit = 'K'
+        limits = (0,320)
     elif select == 'v':
         cube = data['hus']
         titleterm = 'Vapour'
         unit = 'kg/kg'
+        limits = (0, 0.008)
     elif select == 'mmr':
         cube = data['mmr']
         titleterm = 'Haze'
         unit = 'kg/kg'
+        limits = (-8e-10, 8e-09)
     else:
         print('Select t for air temperature, v for specific humidity, or \
               mmr for mass mixing ratio.')
@@ -813,13 +826,34 @@ def vert_profile(plobject, time_slice=-1, select='t', meaning=True,
     else:
         plotme = cube[time_slice,:,:,:]
         
-    plt.plot(plotme[:,16,32], heights, label='Substellar')
-    plt.plot(plotme[:,16,0], heights, label='Antistellar')
-    plt.plot(plotme[:,16,16], heights, label='Western terminator')
-    plt.plot(plotme[:,16,48], heights, label='Eastern terminator')
-    plt.gca().invert_yaxis()
+    daylist = []
+    nightlist = []
+    limblist = []
+    for l in range(0, len(levels)):
+        dayside = np.sum(plotme[l,:,16:49]*plobject.area[:,16:49]) /    \
+                  np.sum(plobject.area[:,16:49])
+        daylist.append(dayside)
+        nightside = (np.sum(plotme[l,:,49:]*plobject.area[:,49:]) +     \
+                     np.sum(plotme[l,:,:17]*plobject.area[:,:17])) /    \
+                    (np.sum(plobject.area[:,49:]) + np.sum(plobject.area[:,:17]))
+        nightlist.append(nightside)
+        limb = (np.sum(plotme[l,:,16]*plobject.area[:,16]) +             \
+                np.sum(plotme[l,:,48]*plobject.area[:,48])) /            \
+                (np.sum(plobject.area[:,16]) + np.sum(plobject.area[:,48]))
+        limblist.append(limb)
 
-    plt.title(f'{titleterm} profile', fontsize=14) 
+    fig, ax = plt.subplots(figsize=(5,5))    
+#    plt.plot(plotme[:,16,32], heights, color='k', label='Substellar')
+#    plt.plot(plotme[:,16,0], heights, color='b', label='Antistellar')
+    plt.plot(plotme[:,16,16], heights, color='g', label='Western terminator \n (equator)')
+    plt.plot(plotme[:,16,48], heights, color='b', label='Eastern terminator \n (equator)')
+    plt.plot(np.array(daylist), heights, color='k', linestyle='dashed', label='Dayside mean')
+    plt.plot(np.array(nightlist), heights, color='m', linestyle='dashed', label='Nightside mean')
+    plt.plot(np.array(limblist), heights, color='r', linestyle='dashed', label='Terminator mean')
+    plt.gca().invert_yaxis()
+    plt.xlim(limits)
+
+    plt.title(f'{titleterm} profiles', fontsize=14) 
     plt.ylabel('Height [mbar]', fontsize=14)
     plt.xlabel(f'{titleterm} [{unit}]', fontsize=14)
     plt.legend()

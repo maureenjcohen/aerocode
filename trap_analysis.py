@@ -16,8 +16,8 @@ def init_trap(args):
     """ Instantiate Planet object for each TRAPPIST-1e simulation"""
     
     top_dir = '/exports/csce/datastore/geos/users/s1144983/exoplasim_data/'
-    input_dir = args.input
-    infiles = os.listdir(top_dir + input_dir)
+    input_dir = args.input[0]
+    infiles = sorted(os.listdir(top_dir + input_dir))
     print(infiles)        
     
     planet_list = []
@@ -25,12 +25,12 @@ def init_trap(args):
         pl = Planet(trapdict)
         # Instantiate a Planet class object with info from the planet dict
         # This is stuff like planet radius, star temperature, etc.
-        rot = item[5:]
+        rot = item[5:7]
         # Extract rotation period from filename
         print(rot)
         pl.rotperiod = rot
         # Overwrite default TRAP-1e rotation period with period used in sim
-        pl.load_data(top_dir + item)
+        pl.load_data(top_dir + input_dir + '/' + item, pspace=False)
         # Load the file containing simulation data
         pl.savepath = '/home/s1144983/aerosim/trapspace/'
         # Change default directory to save plots to
@@ -67,20 +67,20 @@ def init_ref(args):
         
     return ref_list
 
-def winds(objlist, select = np.arange(1,31,1), savearg=False, sformat='png'):
+def winds(objlist, select = np.arange(1,31,1), level=5, savearg=False, sformat='png'):
     
     for plobject in objlist:
-        if plobject.rotperiod in list(select):
+        if float(plobject.rotperiod) in list(select):
             wind_vectors(plobject,
                          level=5,
                          savename='winds_lev_' + str(level) + '_' + 
                          str(plobject.rotperiod) + '.' + sformat, 
                          save=savearg, saveformat=sformat)
             
-def mmr_maps(objlist, select = np.arange(1,31,1), savearg=False, sformat='png'):
+def mmr_maps(objlist, select = np.arange(1,31,1), level=5, savearg=False, sformat='png'):
     
     for plobject in objlist:
-        if plobject.rotperiod in list(select):
+        if float(plobject.rotperiod) in list(select):
             mmr_map(plobject, item='mmr',
                     level=5, cpower=7,
                     savename='mmrlev_' + str(level) + '_' + 
@@ -90,11 +90,11 @@ def mmr_maps(objlist, select = np.arange(1,31,1), savearg=False, sformat='png'):
 def columns(objlist, select = np.arange(1,31,1), savearg=False, sformat='png'):
     
     for plobject in objlist:
-        if plobject.rotperiod in list(select):
+        if float(plobject.rotperiod) in list(select):
             haze_column = mass_column(plobject, mass_loading(plobject, 'mmr'))
             titlestr = f'Rotation period = {plobject.rotperiod} days'
-            plot_lonlat(plobject, haze_column, title = titlestr, 
-                        unit = 'kg m$^{-2}$',
+            plot_column(plobject, haze_column, title = titlestr, 
+                        unit = '$10^{-5}$ kg m$^{-2}$', cpower=5,
                         savename='column_' + str(plobject.rotperiod) + 
                         '.' + sformat, 
                         save=savearg, saveformat=sformat)
@@ -102,7 +102,7 @@ def columns(objlist, select = np.arange(1,31,1), savearg=False, sformat='png'):
 def profiles(objlist, select = np.arange(1,31,1), savearg=False, sformat='png'):
     
     for plobject in objlist:
-        if plobject.rotperiod in list(select):
+        if float(plobject.rotperiod) in list(select):
             vert_profile(plobject, select='mmr',
                          savename = 'profiles_' + str(plobject.rotperiod) +
                          '.' + sformat,
@@ -111,8 +111,9 @@ def profiles(objlist, select = np.arange(1,31,1), savearg=False, sformat='png'):
 def taus(objlist, select = np.arange(1,31,1), savearg=False, sformat='png'):
     
     for plobject in objlist:
-        if plobject.rotperiod in list(select):
-            tau(plobject, item='mmr', qext=plobject.sw1[-2], prad=1272,
+        if float(plobject.rotperiod) in list(select):
+            tau(plobject, item='mmr', qext=plobject.sw1[-2], prad=5e-07, 
+                pdens=1272,
                 save=savearg, savename='tau_' + str(plobject.rotperiod) + 
                 '.' + sformat, 
                 saveformat=sformat)
@@ -145,11 +146,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # Parameter space sims
     all_traps = init_trap(args)
-    winds(all_traps, savearg=False, sformat='png')
-    mmr_maps(all_traps, savearg=False, sformat='png')
-    columns(all_traps, savearg=False, sformat='png')
-    taus(all_traps, savearg=False, sformat='png')
+#    winds(all_traps, savearg=True, sformat='png')
+#    mmr_maps(all_traps, savearg=True, sformat='png')
+#    columns(all_traps, savearg=True, sformat='png')
+#    profiles(all_traps, savearg=True, sformat='png')
+    taus(all_traps, savearg=True, sformat='png')
     
     # Reference sims
-    ref_traps = init_ref(args) 
-    compare_refs(ref_traps, savearg=False, sformat='png')
+#    ref_traps = init_ref(args) 
+#    compare_refs(ref_traps, savearg=False, sformat='png')
