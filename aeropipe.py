@@ -865,8 +865,9 @@ def vert_profile(plobject, time_slice=-1, select='t', meaning=True,
     
     return
 
-def zmzw(data, time_slice=-1, meaning=True):
-    
+def zmzw(plobject, time_slice=-1, meaning=True, save=False, 
+         savename='zmzw.png', saveformat='png'):
+    data = plobject.data
     lats = data['lat']
     levels = data['lev']
     surfpress = np.mean(data['ps'], axis=0)
@@ -881,13 +882,19 @@ def zmzw(data, time_slice=-1, meaning=True):
         
     zmu = np.mean(plotme, axis=2)
     
-    plt.contourf(lats, heights, zmu, cmap='RdBu_r', norm=TwoSlopeNorm(0))
+    fig, ax = plt.subplots(figsize=(5,5))
+    plt.contourf(lats, heights, zmu, cmap='RdBu_r', 
+                 levels=np.arange(-25, 75, 5), norm=TwoSlopeNorm(0))
     plt.gca().invert_yaxis()
     plt.title('Zonal mean zonal wind', fontsize=14)
     plt.xlabel('Latitude [degrees]', fontsize=14)
     plt.ylabel('Pressure [mbar]', fontsize=14)
-    cbar = plt.colorbar()
+    cbar = plt.colorbar(orientation='vertical', fraction=0.05)
     cbar.ax.set_title('m/s')
-    plt.show()
+    if save == True:
+        plt.savefig(plobject.savepath + savename, format=saveformat)
+        plt.close()
+    else:
+        plt.show() 
 
     

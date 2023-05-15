@@ -118,6 +118,14 @@ def taus(objlist, select = np.arange(1,31,1), savearg=False, sformat='png'):
                 '.' + sformat, 
                 saveformat=sformat)
             
+def zmzws(objlist, select = np.arange(1,31,1), savearg=False, sformat='png'):
+    
+    for plobject in objlist:
+        if float(plobject.rotperiod) in list(select):
+            zmzw(plobject, save=savearg, savename='zmzw_' + 
+                 str(plobject.rotperiod) + '.' + sformat,
+                 saveformat=sformat)
+            
 
 def compare_refs(objlist, savearg=False, sformat='png'):
     
@@ -147,10 +155,11 @@ if __name__ == "__main__":
     # Parameter space sims
     all_traps = init_trap(args)
 #    winds(all_traps, savearg=True, sformat='png')
+#    zmzws(all_traps, savearg=True, sformat='png')
 #    mmr_maps(all_traps, savearg=True, sformat='png')
 #    columns(all_traps, savearg=True, sformat='png')
 #    profiles(all_traps, savearg=True, sformat='png')
-    taus(all_traps, savearg=True, sformat='png')
+#    taus(all_traps, savearg=True, sformat='png')
     
     # Reference sims
 #    ref_traps = init_ref(args) 
