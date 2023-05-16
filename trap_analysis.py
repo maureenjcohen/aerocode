@@ -25,6 +25,7 @@ def init_trap(args):
         # Instantiate a Planet class object with info from the planet dict
         # This is stuff like planet radius, star temperature, etc.
         rot = item[5:7]
+        print(rot)
         # Extract rotation period from filename
         pl.rotperiod = rot
         # Overwrite default TRAP-1e rotation period with period used in sim
@@ -65,17 +66,18 @@ def init_ref(args):
         
     return ref_list
 
-def winds(objlist, select = np.arange(1,31,1), level=5, savearg=False, sformat='png'):
-    
+def winds(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), level=5, savearg=False, sformat='png'):
+
     for plobject in objlist:
         if float(plobject.rotperiod) in list(select):
+            print(float(plobject.rotperiod))
             wind_vectors(plobject,
                          level=5,
                          savename='winds_lev_' + str(level) + '_' + 
                          str(plobject.rotperiod) + '.' + sformat, 
                          save=savearg, saveformat=sformat)
             
-def mmr_maps(objlist, select = np.arange(1,31,1), level=5, savearg=False, sformat='png'):
+def mmr_maps(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), level=5, savearg=False, sformat='png'):
     
     for plobject in objlist:
         if float(plobject.rotperiod) in list(select):
@@ -85,7 +87,7 @@ def mmr_maps(objlist, select = np.arange(1,31,1), level=5, savearg=False, sforma
                     str(plobject.rotperiod) + '.' + sformat, 
                     save=savearg, saveformat=sformat)
             
-def columns(objlist, select = np.arange(1,31,1), savearg=False, sformat='png'):
+def columns(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), savearg=False, sformat='png'):
     
     for plobject in objlist:
         if float(plobject.rotperiod) in list(select):
@@ -97,7 +99,7 @@ def columns(objlist, select = np.arange(1,31,1), savearg=False, sformat='png'):
                         '.' + sformat, 
                         save=savearg, saveformat=sformat)
             
-def profiles(objlist, select = np.arange(1,31,1), savearg=False, sformat='png'):
+def profiles(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), savearg=False, sformat='png'):
     
     for plobject in objlist:
         if float(plobject.rotperiod) in list(select):
@@ -106,7 +108,7 @@ def profiles(objlist, select = np.arange(1,31,1), savearg=False, sformat='png'):
                          '.' + sformat,
                          save=savearg, saveformat=sformat)
             
-def taus(objlist, select = np.arange(1,31,1), savearg=False, sformat='png'):
+def taus(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), savearg=False, sformat='png'):
     
     for plobject in objlist:
         if float(plobject.rotperiod) in list(select):
@@ -116,7 +118,7 @@ def taus(objlist, select = np.arange(1,31,1), savearg=False, sformat='png'):
                 '.' + sformat, 
                 saveformat=sformat, pplot=True)
             
-def zmzws(objlist, select = np.arange(1,31,1), savearg=False, sformat='png'):
+def zmzws(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), savearg=False, sformat='png'):
     
     for plobject in objlist:
         if float(plobject.rotperiod) in list(select):
@@ -217,14 +219,14 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # Parameter space sims
     all_traps = init_trap(args)
-#    winds(all_traps, savearg=True, sformat='png')
-#    zmzws(all_traps, savearg=True, sformat='png')
-#    mmr_maps(all_traps, savearg=True, sformat='png')
-#    columns(all_traps, savearg=True, sformat='png')
-#    profiles(all_traps, savearg=True, sformat='png')
-#    taus(all_traps, savearg=True, sformat='png')
-#    bulk_mass(all_traps, savearg=True, sformat='png')
-#    bulk_tau(all_traps, savearg=True, sformat='png')
+    winds(all_traps, savearg=True, sformat='png')
+    zmzws(all_traps, savearg=True, sformat='png')
+    mmr_maps(all_traps, savearg=True, sformat='png')
+    columns(all_traps, savearg=True, sformat='png')
+    profiles(all_traps, savearg=True, sformat='png')
+    taus(all_traps, savearg=True, sformat='png')
+    bulk_mass(all_traps, savearg=True, sformat='png')
+    bulk_tau(all_traps, savearg=True, sformat='png')
     tau_map(all_traps, savearg=True, sformat='png')
     
     # Reference sims
