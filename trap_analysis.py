@@ -18,7 +18,6 @@ def init_trap(args):
     top_dir = '/exports/csce/datastore/geos/users/s1144983/exoplasim_data/'
     input_dir = args.input[0]
     infiles = sorted(os.listdir(top_dir + input_dir))
-    print(infiles)        
     
     planet_list = []
     for item in infiles:
@@ -27,7 +26,6 @@ def init_trap(args):
         # This is stuff like planet radius, star temperature, etc.
         rot = item[5:7]
         # Extract rotation period from filename
-        print(rot)
         pl.rotperiod = rot
         # Overwrite default TRAP-1e rotation period with period used in sim
         pl.load_data(top_dir + input_dir + '/' + item, pspace=False)
@@ -116,7 +114,7 @@ def taus(objlist, select = np.arange(1,31,1), savearg=False, sformat='png'):
                 pdens=1272,
                 save=savearg, savename='tau_' + str(plobject.rotperiod) + 
                 '.' + sformat, 
-                saveformat=sformat)
+                saveformat=sformat, pplot=True)
             
 def zmzws(objlist, select = np.arange(1,31,1), savearg=False, sformat='png'):
     
@@ -125,7 +123,72 @@ def zmzws(objlist, select = np.arange(1,31,1), savearg=False, sformat='png'):
             zmzw(plobject, save=savearg, savename='zmzw_' + 
                  str(plobject.rotperiod) + '.' + sformat,
                  saveformat=sformat)
-            
+                 
+def bulk_mass(objlist, savearg=False, sformat='png'):
+
+    mlist = []
+    plist = []
+    for plobject in objlist:
+        prot = float(plobject.rotperiod)
+        plist.append(prot)
+        
+        haze_column = mass_column(plobject, mass_loading(plobject, cube='mmr'))
+        limb_total = limb_mass(plobject, haze_column)
+        mlist.append(limb_total)
+    mass_distribution(objlist[0], plist, mlist, save=savearg,
+                      savename='limb_mass' + '.' + sformat,
+                      saveformat=sformat, fsize=14)
+                      
+def bulk_tau(objlist, savearg=False, sformat='png'):
+
+    ttop = []
+    plist = []
+    for plobject in objlist:
+        prot = float(plobject.rotperiod)
+        plist.append(prot)
+        west, east, limb, levs = tau(plobject, item='mmr', qext=plobject.sw1[-2], 
+            prad=5e-07, pdens=1272,
+            save=savearg, savename='tau_' + str(plobject.rotperiod) + 
+            '.' + sformat, 
+            saveformat=sformat, pplot=False)
+        arealist = []
+        for index, element in np.ndenumerate(west[1,:]):
+            if element >= 1.0:
+                ar = plobject.area[index,16]
+                arealist.append(ar)
+        for index, element in np.ndenumerate(east[1,:]):
+            if element >= 1.0:
+                ar = plobject.area[index,48]
+                arealist.append(ar)
+        areacov = np.sum(np.array(arealist))/(2*np.sum(plobject.area[:,16]))
+        ttop.append(areacov)
+    tau_distribution(objlist[0], plist, ttop, save=savearg,
+                      savename='limb_tau' + '.' + sformat,
+                      saveformat=sformat, fsize=14)
+
+def tau_map(objlist, savearg=False, sformat='png'):
+
+    tmax = []
+    plist = []
+    for plobject in objlist:
+        prot = float(plobject.rotperiod)
+        plist.append(prot)
+        west, east, limb, levs = tau(plobject, item='mmr', qext=plobject.sw1[-2], 
+            prad=5e-07, pdens=1272,
+            save=savearg, savename='tau_' + str(plobject.rotperiod) + 
+            '.' + sformat, 
+            saveformat=sformat, pplot=False)
+        hlist = []
+        for h in range(0,levs.shape[0]):
+            maxtau = np.max(limb[h,:])
+            hlist.append(maxtau)
+        tmax.append(hlist)
+    tauplot = np.array(tmax)
+    hsplot = np.mean(objlist[0].flpr, axis=(0,2,3))/100
+    tau_contour(objlist[0], plist, hsplot,
+                tauplot.T, save=savearg,
+                savename='tau_contour' + '.' + sformat,
+                saveformat=sformat, fsize=14)
 
 def compare_refs(objlist, savearg=False, sformat='png'):
     
@@ -160,6 +223,9 @@ if __name__ == "__main__":
 #    columns(all_traps, savearg=True, sformat='png')
 #    profiles(all_traps, savearg=True, sformat='png')
 #    taus(all_traps, savearg=True, sformat='png')
+#    bulk_mass(all_traps, savearg=True, sformat='png')
+#    bulk_tau(all_traps, savearg=True, sformat='png')
+    tau_map(all_traps, savearg=True, sformat='png')
     
     # Reference sims
 #    ref_traps = init_ref(args) 

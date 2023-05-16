@@ -277,12 +277,65 @@ def plot_column(plobject, cube, title = 'Planet', unit='$10^{-5}$ kg m$^{-2}$',
         plt.show()
     
 def limb_mass(plobject, inputcol):
-    """ Calculate total haze mass at planetary limb"""
+    """ Calculate total haze mass at planetary limb
+        From vertically integrated haze mass loading column"""
     
     limbsum = (np.sum(inputcol[:,16]*plobject.area[:,16]) + \
                 np.sum(inputcol[:,48]*plobject.area[:,48]))
        
     return limbsum
+    
+def mass_distribution(plobject, inputaxis, inputdata, save=False, 
+                     savename='massdistribution.png', 
+                     saveformat='png', fsize=14):
+    """ Plot total integrated haze at terminator against rotation rate"""
+    
+    fig, ax = plt.subplots(figsize=(8,5))
+    plt.scatter(np.array(inputaxis), np.array(inputdata))
+    plt.title('Total haze mass at planetary limb', fontsize=fsize)
+    plt.xlabel('Planet rotation period [days]', fontsize=fsize)
+    plt.ylabel('Haze mass [kg]', fontsize=fsize)
+    if save == True:
+        plt.savefig(plobject.savepath + savename, format=saveformat)
+        plt.close()
+    else:
+        plt.show()
+
+def tau_distribution(plobject, inputaxis, inputdata, save=False, 
+                     savename='taudistribution.png', 
+                     saveformat='png', fsize=14):
+    """ Plot total integrated haze at terminator against rotation rate"""
+    
+    fig, ax = plt.subplots(figsize=(8,5))
+    plt.scatter(np.array(inputaxis), np.array(inputdata)*100)
+    plt.title('Percent of tropopause where tau > 1 at limb', fontsize=fsize)
+    plt.xlabel('Planet rotation period [days]', fontsize=fsize)
+    plt.ylabel('Percent [%]', fontsize=fsize)
+    if save == True:
+        plt.savefig(plobject.savepath + savename, format=saveformat)
+        plt.close()
+    else:
+        plt.show()
+        
+def tau_contour(plobject, xaxis, yaxis, inputdata, save=False,
+                savename='taucontour.png', saveformat='png',
+                fsize=14):
+    """ Contour fill of max limb tau vs height and rotation rate"""
+    fig, ax = plt.subplots(figsize=(8,5))
+    plt.contourf(np.array(xaxis), np.array(yaxis), np.array(inputdata),
+                cmap='plasma')
+    plt.title('Max optical depth at planetary limb', fontsize=fsize)
+    plt.xlabel('Planet rotation period [days]', fontsize=fsize)
+    plt.ylabel('Height [mbar]', fontsize=fsize)
+    plt.gca().invert_yaxis()
+    cbar = plt.colorbar(orientation='vertical', fraction=0.05)
+    cbar.set_label('tau', fontsize=fsize-2)
+    if save == True:
+        plt.savefig(plobject.savepath + savename, format=saveformat)
+        plt.close()
+    else:
+        plt.show()
+
 
 def distribution(plobject, inputaxis, inputlists, save=False,
                 savename='plotname.png', saveformat='png'):
@@ -549,7 +602,7 @@ def mmr2n(plobject, item, partrad=5e-07, pdens=1272):
     return outcube, nsource
     
 def tau(plobject, item, qext, prad, pdens, time_slice=-1, meaning=True,
-        save=False, savename='plotname.png', saveformat='png'):
+        save=False, savename='plotname.png', saveformat='png', pplot=True):
     """ Calculate optical depth in the line of sight when viewed during transit
         Considers only the actual terminator and not the 3-D geometry   """
     if meaning == True:
@@ -564,32 +617,33 @@ def tau(plobject, item, qext, prad, pdens, time_slice=-1, meaning=True,
     west = nrho[:,:,16]*qext*np.pi*(prad**2)*plobject.dx[16,16]
     east = nrho[:,:,48]*qext*np.pi*(prad**2)*plobject.dx[16,16]
     limb = np.concatenate((east, west), axis=1)
-    
     heights = np.mean(heights, axis=(1,2))/100
 
-    [r, th] = np.meshgrid(heights, np.radians(np.arange(0,64)*5.75))
-    fig = plt.figure(figsize=(5,5))
-    ax = fig.add_subplot(111, polar=True)
-    ax.set_theta_zero_location('N')
-    ax.set_theta_direction(-1)
-    ax.set_rorigin(1200)
-    
-    contf = ax.contourf(th, r, limb.T, levels=np.arange(0,5.1,0.2), cmap='plasma')
-    ax.set_xticklabels(['90N','45N','eq.','45S','90S','45S','eq.','45N'])
-    ax.set_rlim(bottom=heights[-1], top=heights[0]+1)
-    ax.set_title('Equivalent haze optical depth \n at planetary limb')
-    plt.colorbar(contf, pad=0.1, orientation='vertical', fraction=0.05)
-    rlabels = ax.get_ymajorticklabels()
-    for label in rlabels:
-        label.set_color('white')
-    if save == True:
-        plt.savefig(plobject.savepath + savename, format=saveformat)
-        plt.close()
-    else:
-        plt.show()   
-    
-    return
+    if pplot == True:
 
+        [r, th] = np.meshgrid(heights, np.radians(np.arange(0,64)*5.75))
+        fig = plt.figure(figsize=(5,5))
+        ax = fig.add_subplot(111, polar=True)
+        ax.set_theta_zero_location('N')
+        ax.set_theta_direction(-1)
+        ax.set_rorigin(1200)
+        
+        contf = ax.contourf(th, r, limb.T, levels=np.arange(0,5.1,0.2), cmap='plasma')
+        ax.set_xticklabels(['90N','45N','eq.','45S','90S','45S','eq.','45N'])
+        ax.set_rlim(bottom=heights[-1], top=heights[0]+1)
+        ax.set_title('Equivalent haze optical depth \n at planetary limb')
+        plt.colorbar(contf, pad=0.1, orientation='vertical', fraction=0.05)
+        rlabels = ax.get_ymajorticklabels()
+        for label in rlabels:
+            label.set_color('white')
+        if save == True:
+            plt.savefig(plobject.savepath + savename, format=saveformat)
+            plt.close()
+        else:
+            plt.show()
+            
+    return west, east, limb, heights    
+    
 ### Old functions, maybe delete after fully cannibalised    
 
 def import_data(path):
