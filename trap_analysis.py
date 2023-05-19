@@ -128,15 +128,20 @@ def zmzws(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), savearg=False, 
                  
 def bulk_mass(objlist, savearg=False, sformat='png'):
 
-    mlist = []
+    tlist = []
+    elist = []
+    wlist = []
     plist = []
     for plobject in objlist:
         prot = float(plobject.rotperiod)
         plist.append(prot)
         
         haze_column = mass_column(plobject, mass_loading(plobject, cube='mmr'))
-        limb_total = limb_mass(plobject, haze_column)
-        mlist.append(limb_total)
+        west_total, east_total, limb_total = limb_mass(plobject, haze_column)
+        wlist.append(west_total)
+        elist.append(east_total)
+        tlist.append(limb_total)
+    mlist = [wlist, elist, tlist]
     mass_distribution(objlist[0], plist, mlist, save=savearg,
                       savename='limb_mass' + '.' + sformat,
                       saveformat=sformat, fsize=14)
@@ -155,11 +160,11 @@ def bulk_tau(objlist, savearg=False, sformat='png'):
             saveformat=sformat, pplot=False)
         arealist = []
         for index, element in np.ndenumerate(west[1,:]):
-            if element >= 1.0:
+            if element >= 3.0:
                 ar = plobject.area[index,16]
                 arealist.append(ar)
         for index, element in np.ndenumerate(east[1,:]):
-            if element >= 1.0:
+            if element >= 3.0:
                 ar = plobject.area[index,48]
                 arealist.append(ar)
         areacov = np.sum(np.array(arealist))/(2*np.sum(plobject.area[:,16]))
@@ -219,15 +224,15 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # Parameter space sims
     all_traps = init_trap(args)
-    winds(all_traps, savearg=True, sformat='png')
-    zmzws(all_traps, savearg=True, sformat='png')
-    mmr_maps(all_traps, savearg=True, sformat='png')
-    columns(all_traps, savearg=True, sformat='png')
-    profiles(all_traps, savearg=True, sformat='png')
-    taus(all_traps, savearg=True, sformat='png')
-    bulk_mass(all_traps, savearg=True, sformat='png')
+ #   winds(all_traps, savearg=True, sformat='png')
+ #   zmzws(all_traps, savearg=True, sformat='png')
+ #   mmr_maps(all_traps, savearg=True, sformat='png')
+ #   columns(all_traps, savearg=True, sformat='png')
+#    profiles(all_traps, savearg=True, sformat='png')
+#    taus(all_traps, savearg=True, sformat='png')
+#    bulk_mass(all_traps, savearg=True, sformat='png')
     bulk_tau(all_traps, savearg=True, sformat='png')
-    tau_map(all_traps, savearg=True, sformat='png')
+#    tau_map(all_traps, savearg=True, sformat='png')
     
     # Reference sims
 #    ref_traps = init_ref(args) 

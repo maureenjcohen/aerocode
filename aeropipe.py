@@ -279,22 +279,28 @@ def plot_column(plobject, cube, title = 'Planet', unit='$10^{-5}$ kg m$^{-2}$',
 def limb_mass(plobject, inputcol):
     """ Calculate total haze mass at planetary limb
         From vertically integrated haze mass loading column"""
-    
-    limbsum = (np.sum(inputcol[:,16]*plobject.area[:,16]) + \
-                np.sum(inputcol[:,48]*plobject.area[:,48]))
+    westsum = (np.sum(inputcol[:,16]*plobject.area[:,16]))
+    eastsum = (np.sum(inputcol[:,48]*plobject.area[:,48]))
+    limbsum = westsum + eastsum
        
-    return limbsum
+    return westsum, eastsum, limbsum
     
 def mass_distribution(plobject, inputaxis, inputdata, save=False, 
                      savename='massdistribution.png', 
                      saveformat='png', fsize=14):
     """ Plot total integrated haze at terminator against rotation rate"""
-    
+    limb_area = np.sum(plobject.area[:,16]) + np.sum(plobject.area[:,48])
     fig, ax = plt.subplots(figsize=(8,5))
-    plt.scatter(np.array(inputaxis), np.array(inputdata))
-    plt.title('Total haze mass at planetary limb', fontsize=fsize)
+    plt.scatter(np.array(inputaxis), np.array(inputdata[0])/(0.5*limb_area),
+                label='Western terminator')
+    plt.scatter(np.array(inputaxis), np.array(inputdata[1])/(0.5*limb_area),
+                label='Eastern terminator')
+    plt.scatter(np.array(inputaxis), np.array(inputdata[2])/(limb_area),
+                label='Total')
+    plt.title('Haze mass at planetary limb', fontsize=fsize)
     plt.xlabel('Planet rotation period [days]', fontsize=fsize)
-    plt.ylabel('Haze mass [kg]', fontsize=fsize)
+    plt.ylabel('Haze mass [kg/m2]', fontsize=fsize)
+    plt.legend()
     if save == True:
         plt.savefig(plobject.savepath + savename, format=saveformat)
         plt.close()
@@ -308,7 +314,7 @@ def tau_distribution(plobject, inputaxis, inputdata, save=False,
     
     fig, ax = plt.subplots(figsize=(8,5))
     plt.scatter(np.array(inputaxis), np.array(inputdata)*100)
-    plt.title('Percent of tropopause where tau > 1 at limb', fontsize=fsize)
+    plt.title('Percent of tropopause where tau > 3 at limb', fontsize=fsize)
     plt.xlabel('Planet rotation period [days]', fontsize=fsize)
     plt.ylabel('Percent [%]', fontsize=fsize)
     if save == True:
@@ -871,6 +877,11 @@ def vert_profile(plobject, time_slice=-1, select='t', meaning=True,
         titleterm = 'Haze'
         unit = 'kg/kg'
         limits = (-8e-10, 8e-09)
+    elif select == 'dtdt':
+        cube = data['dtdt']
+        titleterm = 'Radiative heating rate'
+        unit = 'K/s'
+        limits = (-8e-05, 1.0e-05)
     else:
         print('Select t for air temperature, v for specific humidity, or \
               mmr for mass mixing ratio.')
