@@ -75,7 +75,7 @@ def winds(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), level=5, savear
                          level=5,
                          savename='winds_lev_' + str(level) + '_' + 
                          str(plobject.rotperiod) + '.' + sformat, 
-                         save=savearg, saveformat=sformat)
+                         save=savearg, saveformat=sformat, fsize=14)
             
 def mmr_maps(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), level=5, savearg=False, sformat='png'):
     
@@ -85,7 +85,7 @@ def mmr_maps(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), level=5, sav
                     level=5, cpower=7,
                     savename='mmrlev_' + str(level) + '_' + 
                     str(plobject.rotperiod) + '.' + sformat, 
-                    save=savearg, saveformat=sformat)
+                    save=savearg, saveformat=sformat, fsize=14)
             
 def columns(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), savearg=False, sformat='png'):
     
@@ -97,7 +97,7 @@ def columns(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), savearg=False
                         unit = '$10^{-5}$ kg m$^{-2}$', cpower=5,
                         savename='column_' + str(plobject.rotperiod) + 
                         '.' + sformat, 
-                        save=savearg, saveformat=sformat)
+                        save=savearg, saveformat=sformat, fsize=14)
             
 def profiles(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), savearg=False, sformat='png'):
     
@@ -106,7 +106,7 @@ def profiles(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), savearg=Fals
             vert_profile(plobject, select='mmr',
                          savename = 'profiles_' + str(plobject.rotperiod) +
                          '.' + sformat,
-                         save=savearg, saveformat=sformat)
+                         save=savearg, saveformat=sformat, fsize=14)
             
 def taus(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), savearg=False, sformat='png'):
     
@@ -116,7 +116,7 @@ def taus(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), savearg=False, s
                 pdens=1272,
                 save=savearg, savename='tau_' + str(plobject.rotperiod) + 
                 '.' + sformat, 
-                saveformat=sformat, pplot=True)
+                saveformat=sformat, fsize=14, pplot=True)
             
 def zmzws(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), savearg=False, sformat='png'):
     
@@ -124,7 +124,7 @@ def zmzws(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), savearg=False, 
         if float(plobject.rotperiod) in list(select):
             zmzw(plobject, save=savearg, savename='zmzw_' + 
                  str(plobject.rotperiod) + '.' + sformat,
-                 saveformat=sformat)
+                 saveformat=sformat, fsize=14)
                  
 def bulk_mass(objlist, savearg=False, sformat='png'):
 
@@ -148,7 +148,9 @@ def bulk_mass(objlist, savearg=False, sformat='png'):
                       
 def bulk_tau(objlist, savearg=False, sformat='png'):
 
-    ttop = []
+    t3 = [] # Percentage where tau > 3
+    t2 = [] # Percentage where tau > 2
+    t1 = [] # Percentage where tau > 1
     plist = []
     for plobject in objlist:
         prot = float(plobject.rotperiod)
@@ -158,17 +160,36 @@ def bulk_tau(objlist, savearg=False, sformat='png'):
             save=savearg, savename='tau_' + str(plobject.rotperiod) + 
             '.' + sformat, 
             saveformat=sformat, pplot=False)
-        arealist = []
+        area3 = []
+        area2 = []
+        area1 = []
         for index, element in np.ndenumerate(west[1,:]):
-            if element >= 3.0:
-                ar = plobject.area[index,16]
-                arealist.append(ar)
+            if element > 3.0:
+                ar3 = plobject.area[index,16]
+                area3.append(ar3)
+            if element > 2.0:
+                ar2 = plobject.area[index,16]
+                area2.append(ar2)
+            if element > 1.0:
+                ar1 = plobject.area[index,16]
+                area1.append(ar1)
         for index, element in np.ndenumerate(east[1,:]):
-            if element >= 3.0:
-                ar = plobject.area[index,48]
-                arealist.append(ar)
-        areacov = np.sum(np.array(arealist))/(2*np.sum(plobject.area[:,16]))
-        ttop.append(areacov)
+            if element > 3.0:
+                ar3 = plobject.area[index,48]
+                area3.append(ar3)
+            if element > 2.0:
+                ar2 = plobject.area[index,16]
+                area2.append(ar2)
+            if element > 1.0:
+                ar1 = plobject.area[index,16]
+                area1.append(ar1)
+        areacov3 = np.sum(np.array(area3))/(2*np.sum(plobject.area[:,16]))
+        areacov2 = np.sum(np.array(area2))/(2*np.sum(plobject.area[:,16]))
+        areacov1 = np.sum(np.array(area1))/(2*np.sum(plobject.area[:,16]))        
+        t3.append(areacov3)
+        t2.append(areacov2)
+        t1.append(areacov1)
+    ttop = [t1, t2, t3]
     tau_distribution(objlist[0], plist, ttop, save=savearg,
                       savename='limb_tau' + '.' + sformat,
                       saveformat=sformat, fsize=14)
@@ -229,9 +250,9 @@ if __name__ == "__main__":
  #   mmr_maps(all_traps, savearg=True, sformat='png')
  #   columns(all_traps, savearg=True, sformat='png')
 #    profiles(all_traps, savearg=True, sformat='png')
-#    taus(all_traps, savearg=True, sformat='png')
+    taus(all_traps, savearg=True, sformat='png')
 #    bulk_mass(all_traps, savearg=True, sformat='png')
-    bulk_tau(all_traps, savearg=True, sformat='png')
+#    bulk_tau(all_traps, savearg=True, sformat='png')
 #    tau_map(all_traps, savearg=True, sformat='png')
     
     # Reference sims

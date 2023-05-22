@@ -162,7 +162,7 @@ class Planet:
         np.savez(top_dir + self.name + '.npz', 
                 **{name:value for name,value in zip(self.contents, self.data.values())})
     
-    def load_data(self, filepath, pspace=True):
+    def load_data(self, filepath, pspace=False):
         """ Load a single preprocessed npz file with all data"""
         planetdata = dict(np.load(filepath))
         planetnames = list(planetdata.keys())
@@ -258,18 +258,24 @@ def mass_column(plobject, cube, month=-1, meaning=True):
 def plot_column(plobject, cube, title = 'Planet', unit='$10^{-5}$ kg m$^{-2}$',
                 cpower=5,
                 colors='plasma', save=False, savename='plotname.png', 
-                saveformat='png'):
+                saveformat='png', fsize=14):
     """ Make a lon-lat contourfill plot of the haze column"""
     coeff = 10**cpower
     fig, ax = plt.subplots(figsize=(8,5))
     plt.contourf(plobject.lon, plobject.lat, cube*coeff, 
                  levels=np.arange(0.15, 2.26, 0.1), cmap=colors)
     plt.title(title + '\n' + 'Total haze column excluding source',
-              fontsize=14)
-    plt.xlabel('Longitude [deg]', fontsize=14)
-    plt.ylabel('Latitude [deg]', fontsize=14)
+              fontsize=fsize)
+    plt.xlabel('Longitude [deg]', fontsize=fsize)
+    plt.ylabel('Latitude [deg]', fontsize=fsize)
+    plt.xticks((0, 16, 32, 48, 64), 
+                ('180W', '90W', '0','90E','180E'))
+    plt.yticks((0, 8, 16, 24, 32 ),
+                ('90S', '45S', '0', '45N', '90N'))
     cbar = plt.colorbar(orientation='vertical', fraction=0.05)
-    cbar.set_label(unit, fontsize=10)
+    cbar.set_label(unit, fontsize=fsize-2)
+    if saveformat == 'eps':
+        fig.tight_layout()
     if save == True:
         plt.savefig(plobject.savepath + savename, format=saveformat)
         plt.close()
@@ -291,16 +297,18 @@ def mass_distribution(plobject, inputaxis, inputdata, save=False,
     """ Plot total integrated haze at terminator against rotation rate"""
     limb_area = np.sum(plobject.area[:,16]) + np.sum(plobject.area[:,48])
     fig, ax = plt.subplots(figsize=(8,5))
-    plt.scatter(np.array(inputaxis), np.array(inputdata[0])/(0.5*limb_area),
-                label='Western terminator')
-    plt.scatter(np.array(inputaxis), np.array(inputdata[1])/(0.5*limb_area),
-                label='Eastern terminator')
-    plt.scatter(np.array(inputaxis), np.array(inputdata[2])/(limb_area),
-                label='Total')
+    plt.plot(np.array(inputaxis), np.array(inputdata[0])/(0.5*limb_area),
+                color='b', label='Western terminator')
+    plt.plot(np.array(inputaxis), np.array(inputdata[1])/(0.5*limb_area),
+                color='r', label='Eastern terminator')
+    plt.plot(np.array(inputaxis), np.array(inputdata[2])/(limb_area),
+                color='k', label='Total')
     plt.title('Haze mass at planetary limb', fontsize=fsize)
     plt.xlabel('Planet rotation period [days]', fontsize=fsize)
     plt.ylabel('Haze mass [kg/m2]', fontsize=fsize)
     plt.legend()
+    if saveformat == 'eps':
+        fig.tight_layout()
     if save == True:
         plt.savefig(plobject.savepath + savename, format=saveformat)
         plt.close()
@@ -313,10 +321,18 @@ def tau_distribution(plobject, inputaxis, inputdata, save=False,
     """ Plot total integrated haze at terminator against rotation rate"""
     
     fig, ax = plt.subplots(figsize=(8,5))
-    plt.scatter(np.array(inputaxis), np.array(inputdata)*100)
-    plt.title('Percent of tropopause where tau > 3 at limb', fontsize=fsize)
+    plt.plot(np.array(inputaxis), np.array(inputdata[0])*100, 
+                color='k', label=r'$\tau$ > 1')
+    plt.plot(np.array(inputaxis), np.array(inputdata[1])*100, 
+                color='b', label=r'$\tau$ > 2')
+    plt.plot(np.array(inputaxis), np.array(inputdata[2])*100, 
+                color='r', label=r'$\tau$ > 3')
+    plt.title('Percent of tropopause where limb is optically thick', fontsize=fsize)
     plt.xlabel('Planet rotation period [days]', fontsize=fsize)
     plt.ylabel('Percent [%]', fontsize=fsize)
+    plt.legend()
+    if saveformat == 'eps':
+        fig.tight_layout()
     if save == True:
         plt.savefig(plobject.savepath + savename, format=saveformat)
         plt.close()
@@ -335,7 +351,9 @@ def tau_contour(plobject, xaxis, yaxis, inputdata, save=False,
     plt.ylabel('Height [mbar]', fontsize=fsize)
     plt.gca().invert_yaxis()
     cbar = plt.colorbar(orientation='vertical', fraction=0.05)
-    cbar.set_label('tau', fontsize=fsize-2)
+    cbar.set_label(r'$\tau$', fontsize=fsize-2)
+    if saveformat == 'eps':
+        fig.tight_layout()
     if save == True:
         plt.savefig(plobject.savepath + savename, format=saveformat)
         plt.close()
@@ -344,22 +362,23 @@ def tau_contour(plobject, xaxis, yaxis, inputdata, save=False,
 
 
 def distribution(plobject, inputaxis, inputlists, save=False,
-                savename='plotname.png', saveformat='png'):
+                savename='plotname.png', saveformat='png', fsize=14):
     """ Plot total integrated haze at terminator against particle size"""
-    
-    fig, ax = plt.subplots(figsize=(6,4))    
-    plt.scatter(np.array(inputaxis), np.array(inputlists[0]), 
+    limb_area = np.sum(plobject.area[:,16]) + np.sum(plobject.area[:,48])    
+    fig, ax = plt.subplots(figsize=(8,5))    
+    plt.scatter(np.array(inputaxis), np.array(inputlists[0])/limb_area, 
             c='g', label='1000 kg/m$^3$')
-    plt.scatter(np.array(inputaxis), np.array(inputlists[1]), 
+    plt.scatter(np.array(inputaxis), np.array(inputlists[1]/limb_area), 
             c='r', label='1262 kg/m$^3$')
-    plt.scatter(np.array(inputaxis), np.array(inputlists[2]), 
+    plt.scatter(np.array(inputaxis), np.array(inputlists[2]/limb_area), 
             c='b', label='1328 kg/m$^3$')
-    plt.title('Total haze mass at the planetary limb')
-    plt.xlabel('Particle radius [m]')
-    plt.ylabel('kg')
-#        plt.yscale('log')
+    plt.title('Total haze mass at the planetary limb', fontsize=fsize)
+    plt.xlabel('Particle radius [m]', fontsize=fsize)
+    plt.ylabel('Mass [kg/m2]', fontsize=fsize)
     plt.xscale('log')
     plt.legend()
+    if saveformat == 'eps':
+        fig.tight_layout()
     if save == True:
         plt.savefig(plobject.savepath + savename, format=saveformat)
         plt.close()
@@ -467,7 +486,7 @@ def compare_profiles(plobject, pdensity=1262, proflat=16, proflon=48,
     
 def mmr_map(plobject, item, level=5, cpower=7, 
             save=False, savename='plotname.png', 
-            saveformat='png'):
+            saveformat='png', fsize=14):
     
     coeff = 10**cpower
     
@@ -477,12 +496,18 @@ def mmr_map(plobject, item, level=5, cpower=7,
                  levels=np.arange(0.0, 0.021, 0.001),
                  cmap='plasma')
     plt.title('Mass mixing ratio at %s mbar' % 
-              (np.round(np.mean(plobject.flpr[:,level,16,32], axis=0)/100)))
-    plt.xlabel('Longitude [deg]')
-    plt.ylabel('Latitude [deg]')
+              (np.round(np.mean(plobject.flpr[:,level,16,32], axis=0)/100)),
+              fontsize=fsize)
+    plt.xlabel('Longitude [deg]', fontsize=fsize)
+    plt.ylabel('Latitude [deg]', fontsize=fsize)
+    plt.xticks((0, 16, 32, 48, 64), 
+                ('180W', '90W', '0','90E','180E'))
+    plt.yticks((0, 8, 16, 24, 32 ),
+                ('90S', '45S', '0', '45N', '90N'))
     cbar = plt.colorbar(orientation='vertical', fraction=0.05)
-    cbar.set_label('$10^{-7}$ kg/kg', loc='center')
-    fig.tight_layout()
+    cbar.set_label('$10^{-7}$ kg/kg', loc='center', fontsize=fsize-2)
+    if saveformat == 'eps':
+        fig.tight_layout()
     if save == True:
         plt.savefig(plobject.savepath + savename, format=saveformat)
         plt.close()
@@ -491,7 +516,7 @@ def mmr_map(plobject, item, level=5, cpower=7,
     
     return
     
-def compare_planets(plobjects, ndata=3, level=5, n=2, qscale=10, fsize=16,
+def compare_planets(plobjects, ndata=3, level=5, n=2, qscale=10, fsize=14,
                     whichlevs = 'trap', save=False, savename='compclim.png',
                     saveformat='png'):
     """ Compare climatology of all planets in parameter space"""
@@ -608,7 +633,8 @@ def mmr2n(plobject, item, partrad=5e-07, pdens=1272):
     return outcube, nsource
     
 def tau(plobject, item, qext, prad, pdens, time_slice=-1, meaning=True,
-        save=False, savename='plotname.png', saveformat='png', pplot=True):
+        save=False, savename='plotname.png', saveformat='png', fsize=14, 
+        pplot=True):
     """ Calculate optical depth in the line of sight when viewed during transit
         Considers only the actual terminator and not the 3-D geometry   """
     if meaning == True:
@@ -637,11 +663,16 @@ def tau(plobject, item, qext, prad, pdens, time_slice=-1, meaning=True,
         contf = ax.contourf(th, r, limb.T, levels=np.arange(0,5.1,0.2), cmap='plasma')
         ax.set_xticklabels(['90N','45N','eq.','45S','90S','45S','eq.','45N'])
         ax.set_rlim(bottom=heights[-1], top=heights[0]+1)
-        ax.set_title('Equivalent haze optical depth \n at planetary limb')
-        plt.colorbar(contf, pad=0.1, orientation='vertical', fraction=0.05)
+        ax.set_title('Equivalent haze optical depth \n at planetary limb',
+                     fontsize=fsize)
+        cbar = plt.colorbar(contf, pad=0.1, orientation='vertical', 
+                            fraction=0.05)
+        cbar.set_label(r'$\tau$', fontsize=fsize-2)
         rlabels = ax.get_ymajorticklabels()
         for label in rlabels:
             label.set_color('white')
+        if saveformat == 'eps':
+            fig.tight_layout()
         if save == True:
             plt.savefig(plobject.savepath + savename, format=saveformat)
             plt.close()
@@ -740,7 +771,7 @@ def compare_years(yearlist, startyear=0, proflat=16, proflon=32, clevel=8):
 
     return
 
-def surface_temp(data):
+def surface_temp(data, fsize=14):
     
     # zmin, zmax, zstep = 260,420,20
     
@@ -753,18 +784,22 @@ def surface_temp(data):
     plt.contourf(lons, lats, temperature,
                  cmap='hot')
     plt.title('Surface temperature')
-    plt.xlabel('Longitude')
-    plt.ylabel('Latitude')
+    plt.xlabel('Longitude [deg]')
+    plt.ylabel('Latitude [deg]')
+    plt.xticks((0, 16, 32, 48, 64), 
+                ('180W', '90W', '0','90E','180E'))
+    plt.yticks((0, 8, 16, 24, 32 ),
+                ('90S', '45S', '0', '45N', '90N'))
 
-    cbar = plt.colorbar()
-    cbar.ax.set_title('K')
+    cbar = plt.colorbar(iorientation='vertical', fraction=0.05)
+    cbar.ax.set_title('K', fontsize=fsize-2)
     plt.show()   
     
     return
 
 
 def wind_vectors(plobject, time_slice=-1, level=5, n=2, qscale=10, meaning=True,
-                 save=False, savename='wind_vectors', saveformat='png'):
+                 save=False, savename='wind_vectors', saveformat='png', fsize=14):
     
     data = plobject.data
     if meaning==True:
@@ -800,14 +835,16 @@ def wind_vectors(plobject, time_slice=-1, level=5, n=2, qscale=10, meaning=True,
     ax.quiverkey(q1, X=0.9, Y=1.05, U=qscale*2, label='%s m/s' %str(qscale*2),
                  labelpos='E', coordinates='axes')
     plt.title('%s, %s \n %s mbar' %
-              (titleterm, titletime, np.round(heights[level],0)), fontsize=14)
+              (titleterm, titletime, np.round(heights[level],0)), fontsize=fsize)
     plt.xticks((0, 16, 32, 48, 64), 
                 ('180W', '90W', '0','90E','180E'))
     plt.yticks((0, 8, 16, 24, 32 ),
                 ('90S', '45S', '0', '45N', '90N'))
-    plt.xlabel('Longitude [deg]', fontsize=14)
-    plt.ylabel('Latitude [deg]', fontsize=14)
+    plt.xlabel('Longitude [deg]', fontsize=fsize)
+    plt.ylabel('Latitude [deg]', fontsize=fsize)
     ax.axis('tight')
+    if saveformat == 'eps':
+        fig.tight_layout()
     if save == True:
         plt.savefig(plobject.savepath + savename, format=saveformat)   
         plt.close()
@@ -852,7 +889,8 @@ def cloud_cover(data, time_slice=-1, level=5, meaning=False, total_cloud=False):
 
 
 def vert_profile(plobject, time_slice=-1, select='t', meaning=True,
-                 save=False, savename='profiles.png', saveformat='png'):
+                 save=False, savename='profiles.png', saveformat='png',
+                 fsize=14):
     
     data = plobject.data
     lats = data['lat']
@@ -894,6 +932,8 @@ def vert_profile(plobject, time_slice=-1, select='t', meaning=True,
     daylist = []
     nightlist = []
     limblist = []
+    westlist = []
+    eastlist = []
     for l in range(0, len(levels)):
         dayside = np.sum(plotme[l,:,16:49]*plobject.area[:,16:49]) /    \
                   np.sum(plobject.area[:,16:49])
@@ -906,22 +946,30 @@ def vert_profile(plobject, time_slice=-1, select='t', meaning=True,
                 np.sum(plotme[l,:,48]*plobject.area[:,48])) /            \
                 (np.sum(plobject.area[:,16]) + np.sum(plobject.area[:,48]))
         limblist.append(limb)
+        west = np.sum(plotme[l,:,16]*plobject.area[:,16])/              \
+              (np.sum(plobject.area[:,16]))
+        westlist.append(west)
+        east = np.sum(plotme[l,:,48]*plobject.area[:,48])/              \
+              (np.sum(plobject.area[:,48]))
+        eastlist.append(east)
 
     fig, ax = plt.subplots(figsize=(5,5))    
 #    plt.plot(plotme[:,16,32], heights, color='k', label='Substellar')
 #    plt.plot(plotme[:,16,0], heights, color='b', label='Antistellar')
-    plt.plot(plotme[:,16,16], heights, color='g', label='Western terminator \n (equator)')
-    plt.plot(plotme[:,16,48], heights, color='b', label='Eastern terminator \n (equator)')
+    plt.plot(np.array(westlist), heights, color='g', label='Western terminator mean')
+    plt.plot(np.array(eastlist), heights, color='b', label='Eastern terminator mean')
     plt.plot(np.array(daylist), heights, color='k', linestyle='dashed', label='Dayside mean')
     plt.plot(np.array(nightlist), heights, color='m', linestyle='dashed', label='Nightside mean')
     plt.plot(np.array(limblist), heights, color='r', linestyle='dashed', label='Terminator mean')
     plt.gca().invert_yaxis()
     plt.xlim(limits)
 
-    plt.title(f'{titleterm} profiles', fontsize=14) 
-    plt.ylabel('Height [mbar]', fontsize=14)
-    plt.xlabel(f'{titleterm} [{unit}]', fontsize=14)
+    plt.title(f'{titleterm} profiles', fontsize=fsize) 
+    plt.ylabel('Height [mbar]', fontsize=fsize)
+    plt.xlabel(f'{titleterm} [{unit}]', fontsize=fsize)
     plt.legend()
+    if saveformat == 'eps':
+        fig.tight_layout()
     if save == True:
         plt.savefig(plobject.savepath + savename, format=saveformat)
         plt.close()
@@ -931,7 +979,7 @@ def vert_profile(plobject, time_slice=-1, select='t', meaning=True,
     return
 
 def zmzw(plobject, time_slice=-1, meaning=True, save=False, 
-         savename='zmzw.png', saveformat='png'):
+         savename='zmzw.png', saveformat='png', fsize=14):
     data = plobject.data
     lats = data['lat']
     levels = data['lev']
@@ -951,11 +999,13 @@ def zmzw(plobject, time_slice=-1, meaning=True, save=False,
     plt.contourf(lats, heights, zmu, cmap='RdBu_r', 
                  levels=np.arange(-25, 75, 5), norm=TwoSlopeNorm(0))
     plt.gca().invert_yaxis()
-    plt.title('Zonal mean zonal wind', fontsize=14)
-    plt.xlabel('Latitude [degrees]', fontsize=14)
-    plt.ylabel('Pressure [mbar]', fontsize=14)
+    plt.title('Zonal mean zonal wind', fontsize=fsize)
+    plt.xlabel('Latitude [degrees]', fontsize=fsize)
+    plt.ylabel('Pressure [mbar]', fontsize=fsize)
     cbar = plt.colorbar(orientation='vertical', fraction=0.05)
     cbar.ax.set_title('m/s')
+    if saveformat == 'eps':
+        fig.tight_layout()
     if save == True:
         plt.savefig(plobject.savepath + savename, format=saveformat)
         plt.close()
