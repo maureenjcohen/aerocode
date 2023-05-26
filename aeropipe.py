@@ -261,23 +261,35 @@ def plot_column(plobject, cube, title = 'Planet', unit='$10^{-5}$ kg m$^{-2}$',
                 saveformat='png', fsize=14):
     """ Make a lon-lat contourfill plot of the haze column"""
     coeff = 10**cpower
+    if plobject.name == 'trap':
+        if float(plobject.rotperiod) < 1:
+            clevs = np.arange(0.15, 5.0, 0.1)
+        else:
+            clevs = np.arange(0.15, 2.26, 0.1)
+    elif plobject.name == 'wolf':
+        clevs = np.arange(0.15, 5.3, 0.1)
+    else:
+        print('Check Planet object name')
     fig, ax = plt.subplots(figsize=(8,5))
     plt.contourf(plobject.lon, plobject.lat, cube*coeff, 
-                 levels=np.arange(0.15, 2.26, 0.1), cmap=colors)
+                 levels=clevs, cmap=colors)
     plt.title(title + '\n' + 'Total haze column excluding source',
               fontsize=fsize)
     plt.xlabel('Longitude [deg]', fontsize=fsize)
     plt.ylabel('Latitude [deg]', fontsize=fsize)
-    plt.xticks((0, 16, 32, 48, 64), 
+    plt.xticks((plobject.lon[0], plobject.lon[16], plobject.lon[32], 
+                plobject.lon[48], plobject.lon[-1]), 
                 ('180W', '90W', '0','90E','180E'))
-    plt.yticks((0, 8, 16, 24, 32 ),
-                ('90S', '45S', '0', '45N', '90N'))
+    plt.yticks((plobject.lat[0], plobject.lat[8], plobject.lat[16], 
+                plobject.lat[24], plobject.lat[-1]),
+                ('90N', '45N', '0', '45S', '90S'))
     cbar = plt.colorbar(orientation='vertical', fraction=0.05)
     cbar.set_label(unit, fontsize=fsize-2)
     if saveformat == 'eps':
         fig.tight_layout()
     if save == True:
-        plt.savefig(plobject.savepath + savename, format=saveformat)
+        plt.savefig(plobject.savepath + savename, format=saveformat, 
+                    bbox_inches='tight')
         plt.close()
     else:
         plt.show()
@@ -306,11 +318,13 @@ def mass_distribution(plobject, inputaxis, inputdata, save=False,
     plt.title('Haze mass at planetary limb', fontsize=fsize)
     plt.xlabel('Planet rotation period [days]', fontsize=fsize)
     plt.ylabel('Haze mass [kg/m2]', fontsize=fsize)
+    plt.ylim((0.0, 3.6e-05))
     plt.legend()
     if saveformat == 'eps':
         fig.tight_layout()
     if save == True:
-        plt.savefig(plobject.savepath + savename, format=saveformat)
+        plt.savefig(plobject.savepath + savename, format=saveformat, 
+                    bbox_inches='tight')
         plt.close()
     else:
         plt.show()
@@ -334,7 +348,8 @@ def tau_distribution(plobject, inputaxis, inputdata, save=False,
     if saveformat == 'eps':
         fig.tight_layout()
     if save == True:
-        plt.savefig(plobject.savepath + savename, format=saveformat)
+        plt.savefig(plobject.savepath + savename, format=saveformat, 
+                    bbox_inches='tight')
         plt.close()
     else:
         plt.show()
@@ -355,7 +370,8 @@ def tau_contour(plobject, xaxis, yaxis, inputdata, save=False,
     if saveformat == 'eps':
         fig.tight_layout()
     if save == True:
-        plt.savefig(plobject.savepath + savename, format=saveformat)
+        plt.savefig(plobject.savepath + savename, format=saveformat, 
+                    bbox_inches='tight')
         plt.close()
     else:
         plt.show()
@@ -380,7 +396,8 @@ def distribution(plobject, inputaxis, inputlists, save=False,
     if saveformat == 'eps':
         fig.tight_layout()
     if save == True:
-        plt.savefig(plobject.savepath + savename, format=saveformat)
+        plt.savefig(plobject.savepath + savename, format=saveformat, 
+                    bbox_inches='tight')
         plt.close()
     else:
         plt.show()
@@ -413,7 +430,8 @@ def distribution_scatter(plobject, inputaxis, inputlists, save=False,
     plt.title('Total haze mass at planetary limb \n and extinction efficiency')
 
     if save == True:
-        plt.savefig(plobject.savepath + savename, format=saveformat)
+        plt.savefig(plobject.savepath + savename, format=saveformat,
+                    bbox_inches='tight')
         plt.close()
     else:
         plt.show()
@@ -433,7 +451,8 @@ def distribution_norm(plobject, inputaxis, inputlists, dens=1, save=False,
     plt.xscale('log')
     plt.title('Effect size of haze by particle size')
     if save == True:
-        plt.savefig(plobject.savepath + savename, format=saveformat)
+        plt.savefig(plobject.savepath + savename, format=saveformat,
+                    bbox_inches='tight')
         plt.close()
     else:
         plt.show()    
@@ -479,7 +498,8 @@ def compare_profiles(plobject, pdensity=1262, proflat=16, proflon=48,
     plt.legend(fontsize='small')
     fig.tight_layout()
     if save == True:
-        plt.savefig(plobject.savepath + savename, format=saveformat)
+        plt.savefig(plobject.savepath + savename, format=saveformat,
+                    bbox_inches='tight')
     plt.show()
     
     return
@@ -490,26 +510,36 @@ def mmr_map(plobject, item, level=5, cpower=7,
     
     coeff = 10**cpower
     
+    if plobject.name == 'trap':
+        clevs = np.arange(0.0, 0.021, 0.001)
+    elif plobject.name == 'wolf':
+        clevs = np.arange(0.0, 0.06, 0.002)
+    else:
+        print('Check Planet object name')
+    
     fig, ax = plt.subplots(figsize=(8,5))    
     plt.contourf(plobject.lon, plobject.lat, 
                 np.mean(plobject.data[item][:,level,:,:],axis=0)*coeff,
-                 levels=np.arange(0.0, 0.021, 0.001),
+                 levels=clevs,
                  cmap='plasma')
     plt.title('Mass mixing ratio at %s mbar' % 
               (np.round(np.mean(plobject.flpr[:,level,16,32], axis=0)/100)),
               fontsize=fsize)
     plt.xlabel('Longitude [deg]', fontsize=fsize)
     plt.ylabel('Latitude [deg]', fontsize=fsize)
-    plt.xticks((0, 16, 32, 48, 64), 
+    plt.xticks((plobject.lon[0], plobject.lon[16], plobject.lon[32], 
+                plobject.lon[48], plobject.lon[-1]), 
                 ('180W', '90W', '0','90E','180E'))
-    plt.yticks((0, 8, 16, 24, 32 ),
-                ('90S', '45S', '0', '45N', '90N'))
+    plt.yticks((plobject.lat[0], plobject.lat[8], plobject.lat[16], 
+                plobject.lat[24], plobject.lat[-1]),
+                ('90N', '45N', '0', '45S', '90S'))
     cbar = plt.colorbar(orientation='vertical', fraction=0.05)
     cbar.set_label('$10^{-7}$ kg/kg', loc='center', fontsize=fsize-2)
     if saveformat == 'eps':
         fig.tight_layout()
     if save == True:
-        plt.savefig(plobject.savepath + savename, format=saveformat)
+        plt.savefig(plobject.savepath + savename, format=saveformat,
+                    bbox_inches='tight')
         plt.close()
     else:
         plt.show()  
@@ -608,7 +638,8 @@ def compare_planets(plobjects, ndata=3, level=5, n=2, qscale=10, fsize=14,
         ax[4, 0].set_ylabel('Horizontal and vertical winds [m/s] \n Latitude [deg]', fontsize=fsize)
         ax[4, i].set_xlabel('Longitude [deg]', fontsize=fsize)
     if save == True:
-        plt.savefig(plobjects[0].savepath + savename, format=saveformat)
+        plt.savefig(plobjects[0].savepath + savename, format=saveformat,
+                    bbox_inches='tight')
         plt.close()
     else:
         plt.show()
@@ -646,10 +677,20 @@ def tau(plobject, item, qext, prad, pdens, time_slice=-1, meaning=True,
         nrho = nrho[time_slice,:,:,:]
         heights = plobject.flpr[time_slice,:,:,:]
         
-    west = nrho[:,:,16]*qext*np.pi*(prad**2)*plobject.dx[16,16]
-    east = nrho[:,:,48]*qext*np.pi*(prad**2)*plobject.dx[16,16]
-    limb = np.concatenate((east, west), axis=1)
+    west = nrho[:,:,16]*qext*np.pi*(prad**2)*1000000
+    east = nrho[:,:,48]*qext*np.pi*(prad**2)*1000000
+    limb = np.concatenate((west, east[:,::-1]), axis=1)
     heights = np.mean(heights, axis=(1,2))/100
+    
+    if plobject.name == 'trap':
+        if float(plobject.rotperiod) < 1.0:
+            clevs = np.arange(0,12.6,0.2)
+        else:
+            clevs = np.arange(0,9.1,0.2)
+    elif plobject.name == 'wolf':
+        clevs = np.arange(0,20.1, 0.2)
+    else:
+        print('Check Planet object name')
 
     if pplot == True:
 
@@ -657,13 +698,13 @@ def tau(plobject, item, qext, prad, pdens, time_slice=-1, meaning=True,
         fig = plt.figure(figsize=(5,5))
         ax = fig.add_subplot(111, polar=True)
         ax.set_theta_zero_location('N')
-        ax.set_theta_direction(-1)
+        ax.set_theta_direction(+1)
         ax.set_rorigin(1200)
         
-        contf = ax.contourf(th, r, limb.T, levels=np.arange(0,5.1,0.2), cmap='plasma')
+        contf = ax.contourf(th, r, limb.T, levels=clevs, cmap='plasma')
         ax.set_xticklabels(['90N','45N','eq.','45S','90S','45S','eq.','45N'])
         ax.set_rlim(bottom=heights[-1], top=heights[0]+1)
-        ax.set_title('Equivalent haze optical depth \n at planetary limb',
+        ax.set_title('Haze optical depth per 1000 km \n at planetary limb',
                      fontsize=fsize)
         cbar = plt.colorbar(contf, pad=0.1, orientation='vertical', 
                             fraction=0.05)
@@ -674,11 +715,12 @@ def tau(plobject, item, qext, prad, pdens, time_slice=-1, meaning=True,
         if saveformat == 'eps':
             fig.tight_layout()
         if save == True:
-            plt.savefig(plobject.savepath + savename, format=saveformat)
+            plt.savefig(plobject.savepath + savename, format=saveformat,
+                        bbox_inches='tight')
             plt.close()
         else:
             plt.show()
-            
+
     return west, east, limb, heights    
     
 ### Old functions, maybe delete after fully cannibalised    
@@ -771,27 +813,28 @@ def compare_years(yearlist, startyear=0, proflat=16, proflon=32, clevel=8):
 
     return
 
-def surface_temp(data, fsize=14):
+def surface_temp(plobject, fsize=14):
     
-    # zmin, zmax, zstep = 260,420,20
+    if plobject.name == 'trap':
+        clevs = np.arange(160,320,5)
+    elif plobject.name == 'wolf':
+        clevs = np.arange(225,346,5)
+
     
-    levels = data['lev']
-    lats = data['lat']
-    lons = data['lon']
+    temperature = np.mean(plobject.data['ts'],0)
     
-    temperature = np.mean(data['ts'],0)
-    
-    plt.contourf(lons, lats, temperature,
+    plt.contourf(plobject.lon, plobject.lat, temperature, levels=clevs,
                  cmap='hot')
     plt.title('Surface temperature')
     plt.xlabel('Longitude [deg]')
     plt.ylabel('Latitude [deg]')
-    plt.xticks((0, 16, 32, 48, 64), 
+    plt.xticks((plobject.lon[0], plobject.lon[16], plobject.lon[32], 
+                plobject.lon[48], plobject.lon[-1]), 
                 ('180W', '90W', '0','90E','180E'))
-    plt.yticks((0, 8, 16, 24, 32 ),
-                ('90S', '45S', '0', '45N', '90N'))
-
-    cbar = plt.colorbar(iorientation='vertical', fraction=0.05)
+    plt.yticks((plobject.lat[0], plobject.lat[8], plobject.lat[16], 
+                plobject.lat[24], plobject.lat[-1]),
+                ('90N', '45N', '0', '45S', '90S'))
+    cbar = plt.colorbar(orientation='vertical', fraction=0.05)
     cbar.ax.set_title('K', fontsize=fsize-2)
     plt.show()   
     
@@ -846,7 +889,8 @@ def wind_vectors(plobject, time_slice=-1, level=5, n=2, qscale=10, meaning=True,
     if saveformat == 'eps':
         fig.tight_layout()
     if save == True:
-        plt.savefig(plobject.savepath + savename, format=saveformat)   
+        plt.savefig(plobject.savepath + savename, format=saveformat,
+                    bbox_inches='tight')   
         plt.close()
     else:
         plt.show()
@@ -914,7 +958,12 @@ def vert_profile(plobject, time_slice=-1, select='t', meaning=True,
         cube = data['mmr']
         titleterm = 'Haze'
         unit = 'kg/kg'
-        limits = (-8e-10, 8e-09)
+        if plobject.name == 'trap':
+            limits = (-8e-10, 8e-09)
+        elif plobject.name == 'wolf':
+            limits = (-8e-10, 11e-09)
+        else:
+            print('Check Planet object name')
     elif select == 'dtdt':
         cube = data['dtdt']
         titleterm = 'Radiative heating rate'
@@ -971,7 +1020,8 @@ def vert_profile(plobject, time_slice=-1, select='t', meaning=True,
     if saveformat == 'eps':
         fig.tight_layout()
     if save == True:
-        plt.savefig(plobject.savepath + savename, format=saveformat)
+        plt.savefig(plobject.savepath + savename, format=saveformat, 
+                    bbox_inches='tight')
         plt.close()
     else:
         plt.show()  
@@ -995,9 +1045,14 @@ def zmzw(plobject, time_slice=-1, meaning=True, save=False,
         
     zmu = np.mean(plotme, axis=2)
     
+    if plobject.name == 'trap':
+        clevs = np.arange(-25, 75, 5)
+    elif plobject.name == 'wolf':
+        clevs = np.arange(-40, 135, 5)
+    
     fig, ax = plt.subplots(figsize=(5,5))
     plt.contourf(lats, heights, zmu, cmap='RdBu_r', 
-                 levels=np.arange(-25, 75, 5), norm=TwoSlopeNorm(0))
+                 levels=clevs, norm=TwoSlopeNorm(0))
     plt.gca().invert_yaxis()
     plt.title('Zonal mean zonal wind', fontsize=fsize)
     plt.xlabel('Latitude [degrees]', fontsize=fsize)
@@ -1007,7 +1062,8 @@ def zmzw(plobject, time_slice=-1, meaning=True, save=False,
     if saveformat == 'eps':
         fig.tight_layout()
     if save == True:
-        plt.savefig(plobject.savepath + savename, format=saveformat)
+        plt.savefig(plobject.savepath + savename, format=saveformat, 
+                    bbox_inches='tight')
         plt.close()
     else:
         plt.show() 

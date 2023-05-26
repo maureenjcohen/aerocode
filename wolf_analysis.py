@@ -9,29 +9,29 @@ Created on Fri May 12 10:45:37 2023
 import argparse, os
 from aeropipe import *
 
-""" Usage: python trap_analysis.py --input rot_space --ref reftrap"""
+""" Usage: python wolf_analysis.py --input wolf_space --ref refwolf"""
 
 
-def init_trap(args):
-    """ Instantiate Planet object for each TRAPPIST-1e simulation"""
+def init_wolf(args):
+    """ Instantiate Planet object for each Wolf 1061c simulation"""
     
     top_dir = '/exports/csce/datastore/geos/users/s1144983/exoplasim_data/'
     input_dir = args.input[0]
-    infiles = sorted(os.listdir(top_dir + input_dir))
+    infiles = sorted(os.listdir(top_dir + input_dir), key= lambda x: float(x[5:8]))
     
     planet_list = []
     for item in infiles:
-        pl = Planet(trapdict)
+        pl = Planet(wolfdict)
         # Instantiate a Planet class object with info from the planet dict
         # This is stuff like planet radius, star temperature, etc.
-        rot = item[5:7]
+        rot = item[5:8]
         print(rot)
         # Extract rotation period from filename
         pl.rotperiod = rot
-        # Overwrite default TRAP-1e rotation period with period used in sim
+        # Overwrite default Wolf 1061c period with period used in sim
         pl.load_data(top_dir + input_dir + '/' + item, pspace=False)
         # Load the file containing simulation data
-        pl.savepath = '/home/s1144983/aerosim/trapspace/'
+        pl.savepath = '/home/s1144983/aerosim/wolfspace/'
         # Change default directory to save plots to
         pl.add_rhog()
         # Calculate and add air density
@@ -42,7 +42,7 @@ def init_trap(args):
     return planet_list
 
 def init_ref(args):
-    """ Instantiate Planet object for reference TRAPPIST-1e simulations,
+    """ Instantiate Planet object for reference Wolf 1061c simulations,
     with and without haze"""
     
     top_dir = '/exports/csce/datastore/geos/users/s1144983/exoplasim_data/'    
@@ -52,11 +52,11 @@ def init_ref(args):
     
     ref_list = []    
     for item in infiles:
-        pl = Planet(trapdict)
-        # Instantiate Planet object with TRAPPIST-1e dictionary
+        pl = Planet(wolfdict)
+        # Instantiate Planet object with Wolf 1061c dictionary
         pl.load_data(top_dir + item)
         # Load data using filename
-        pl.savepath = '/home/s1144983/aerosim/trapref/'
+        pl.savepath = '/home/s1144983/aerosim/refwolf/'
         # Change default directory to save plots to
         pl.add_rhog()
         # Calculate and add air density
@@ -92,7 +92,8 @@ def columns(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), savearg=False
     for plobject in objlist:
         if float(plobject.rotperiod) in list(select):
             haze_column = mass_column(plobject, mass_loading(plobject, 'mmr'))
-            titlestr = f'Rotation period = {plobject.rotperiod} days'
+            titlerot = float(plobject.rotperiod)
+            titlestr = f'Rotation period = {titlerot} days'
             plot_column(plobject, haze_column, title = titlestr, 
                         unit = '$10^{-5}$ kg m$^{-2}$', cpower=5,
                         savename='column_' + str(plobject.rotperiod) + 
@@ -228,7 +229,7 @@ def compare_refs(objlist, savearg=False, sformat='png'):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description='Automated analysis pipeline for TRAPPIST-1e haze \
+        description='Automated analysis pipeline for Wolf 1061c haze \
                     simulations')
 
     parser.add_argument(
@@ -239,22 +240,22 @@ if __name__ == "__main__":
     parser.add_argument(
         '--ref',
         nargs=1,
-        help='Path to directory containing reference TRAP-1e simulations \
+        help='Path to directory containing reference Wolf 1061c simulations \
             for climatology')
             
     args = parser.parse_args()
     # Parameter space sims
-    all_traps = init_trap(args)
- #   winds(all_traps, savearg=True, sformat='png')
- #   zmzws(all_traps, savearg=True, sformat='png')
- #   mmr_maps(all_traps, savearg=True, sformat='png')
-#    columns(all_traps, savearg=True, sformat='png')
-#    profiles(all_traps, savearg=True, sformat='png')
-#    taus(all_traps, savearg=True, sformat='png')
-    bulk_mass(all_traps, savearg=True, sformat='png')
-#    bulk_tau(all_traps, savearg=True, sformat='png')
-#    tau_map(all_traps, savearg=True, sformat='png')
+    all_wolfs = init_wolf(args)
+#    winds(all_wolfs, savearg=True, sformat='png')
+#    zmzws(all_wolfs, savearg=True, sformat='png')
+#    mmr_maps(all_wolfs, savearg=True, sformat='png')
+#    columns(all_wolfs, savearg=True, sformat='png')
+#    profiles(all_wolfs, savearg=True, sformat='png')
+#    taus(all_wolfs, savearg=True, sformat='png')
+    bulk_mass(all_wolfs, savearg=True, sformat='png')
+#    bulk_tau(all_wolfs, savearg=True, sformat='png')
+#    tau_map(all_wolfs, savearg=True, sformat='png')
     
     # Reference sims
-#    ref_traps = init_ref(args) 
-#    compare_refs(ref_traps, savearg=False, sformat='png')
+#    ref_wolfs = init_ref(args) 
+#    compare_refs(ref_wolfs, savearg=False, sformat='png')
