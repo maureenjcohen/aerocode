@@ -54,9 +54,15 @@ def main(args, rad):
     sw2_qback = np.average(sw2['qback'], weights=sw2['flux'])
     sw2_g = np.average(sw2['g'], weights=sw2['flux']) 
     
+    mean_qext = np.average(subset['qext'], weights=subset['flux']) 
+    mean_qscat = np.average(subset['qscat'], weights=subset['flux'])
+    mean_qback = np.average(subset['qback'], weights=subset['flux'])
+    mean_g = np.average(subset['g'], weights=subset['flux'])
+    
     with open('constants/' + str(args.stellarspectrum[0][:-4].split('/')[1]) + f'_constants_{radiusnm}' + '.dat', 'w') as datafile:
         datafile.write(' Constants ' + '\n')
-        for value in [sw1_qext, sw1_qscat, sw1_qback, sw1_g, sw2_qext, sw2_qscat, sw2_qback, sw2_g]:
+        for value in [sw1_qext, sw1_qscat, sw1_qback, sw1_g, sw2_qext, sw2_qscat, sw2_qback, sw2_g,
+                      mean_qext, mean_qscat, mean_qback, mean_g]:
             print(value)
             datafile.write(str(value) +'\n')
 
