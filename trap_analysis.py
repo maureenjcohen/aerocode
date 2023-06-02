@@ -31,12 +31,14 @@ def init_trap(args):
         # Overwrite default TRAP-1e rotation period with period used in sim
         pl.load_data(top_dir + input_dir + '/' + item, pspace=False)
         # Load the file containing simulation data
-        pl.savepath = '/home/s1144983/aerosim/trapspace/'
+        pl.savepath = '/home/s1144983/aerosim/trapcontrol/'
         # Change default directory to save plots to
         pl.add_rhog()
         # Calculate and add air density
         pl.area_weights()
         # Calculate and add area weights for area-weighted meaning
+        pl.add_vterm()
+        # Calculate and add viscosity and terminal velocity
         planet_list.append(pl)
         
     return planet_list
@@ -66,13 +68,13 @@ def init_ref(args):
         
     return ref_list
 
-def winds(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), level=5, savearg=False, sformat='png'):
+def winds(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), level=3, savearg=False, sformat='png'):
 
     for plobject in objlist:
         if float(plobject.rotperiod) in list(select):
             print(float(plobject.rotperiod))
             wind_vectors(plobject,
-                         level=5,
+                         level=level,
                          savename='winds_lev_' + str(level) + '_' + 
                          str(plobject.rotperiod) + '.' + sformat, 
                          save=savearg, saveformat=sformat, fsize=14)
@@ -99,14 +101,35 @@ def columns(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), savearg=False
                         '.' + sformat, 
                         save=savearg, saveformat=sformat, fsize=14)
             
-def profiles(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), savearg=False, sformat='png'):
+def mmrprofiles(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), savearg=False, sformat='png'):
     
     for plobject in objlist:
         if float(plobject.rotperiod) in list(select):
             vert_profile(plobject, select='mmr',
-                         savename = 'profiles_' + str(plobject.rotperiod) +
+                         savename = '_profiles_' + str(plobject.rotperiod) +
                          '.' + sformat,
                          save=savearg, saveformat=sformat, fsize=14)
+            
+def windprofiles(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), savearg=False, sformat='png'):
+
+    for plobject in objlist:
+        if float(plobject.rotperiod) in list(select):
+            vert_profile(plobject, select='vterm',
+                         savename = '_profiles_' + str(plobject.rotperiod) +
+                         '.' + sformat,
+                         save=savearg, saveformat=sformat, fsize=14)
+            vert_profile(plobject, select='w',
+                         savename = '_profiles_' + str(plobject.rotperiod) +
+                         '.' + sformat,
+                         save=savearg, saveformat=sformat, fsize=14)
+            
+def vterms(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), level=0, savearg=False, sformat='png'):
+
+    for plobject in objlist:
+        if float(plobject.rotperiod) in list(select):
+            vterm(plobject, level=level, 
+                  savename='vterm_' + str(plobject.rotperiod) + '.' + sformat,
+                  save=savearg, saveformat=sformat, fsize=14)
             
 def taus(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), savearg=False, sformat='png'):
     
@@ -245,15 +268,17 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # Parameter space sims
     all_traps = init_trap(args)
- #   winds(all_traps, savearg=True, sformat='png')
- #   zmzws(all_traps, savearg=True, sformat='png')
- #   mmr_maps(all_traps, savearg=True, sformat='png')
-#    columns(all_traps, savearg=True, sformat='png')
-#    profiles(all_traps, savearg=True, sformat='png')
-#    taus(all_traps, savearg=True, sformat='png')
+    winds(all_traps, level=0, savearg=True, sformat='png')
+    zmzws(all_traps, savearg=True, sformat='png')
+    mmr_maps(all_traps, savearg=True, sformat='png')
+    columns(all_traps, savearg=True, sformat='png')
+    mmrprofiles(all_traps, savearg=True, sformat='png')
+    windprofiles(all_traps, savearg=True, sformat='png')
+    vterms(all_traps, savearg=True, sformat='png')
+    taus(all_traps, savearg=True, sformat='png')
     bulk_mass(all_traps, savearg=True, sformat='png')
-#    bulk_tau(all_traps, savearg=True, sformat='png')
-#    tau_map(all_traps, savearg=True, sformat='png')
+    bulk_tau(all_traps, savearg=True, sformat='png')
+    tau_map(all_traps, savearg=True, sformat='png')
     
     # Reference sims
 #    ref_traps = init_ref(args) 
