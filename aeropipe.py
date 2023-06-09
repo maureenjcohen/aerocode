@@ -307,11 +307,11 @@ def plot_column(plobject, cube, title = 'Planet', unit='$10^{-5}$ kg m$^{-2}$',
     if float(plobject.rotperiod) < 2.0:
         clevs = np.arange(0.15, 5.0, 0.1)
     elif (float(plobject.rotperiod) >= 2.0) and (float(plobject.rotperiod) < 4.0):
-        clevs = np.arange(0.15, 2.6, 0.05)
+        clevs = np.arange(0.15, 1.6, 0.05)
     elif (float(plobject.rotperiod) >= 4.0) and (float(plobject.rotperiod) < 13.0):
         clevs = np.arange(0.15, 5.6, 0.1)
     elif float(plobject.rotperiod) >= 13.0:
-        clevs = np.arange(0.15, 4.1, 0.1)
+        clevs = np.arange(0.15, 2.6, 0.05)
         
     fig, ax = plt.subplots(figsize=(8,5))
     plt.contourf(plobject.lon, plobject.lat, cube*coeff, 
@@ -320,11 +320,11 @@ def plot_column(plobject, cube, title = 'Planet', unit='$10^{-5}$ kg m$^{-2}$',
               fontsize=fsize)
     plt.xlabel('Longitude [deg]', fontsize=fsize)
     plt.ylabel('Latitude [deg]', fontsize=fsize)
-    plt.xticks((plobject.lon[0], plobject.lon[16], plobject.lon[32], 
-                plobject.lon[48], plobject.lon[-1]), 
+    plt.xticks((plobject.lon[0], plobject.lon[15], plobject.lon[31], 
+                plobject.lon[47], plobject.lon[63]), 
                 ('180W', '90W', '0','90E','180E'))
-    plt.yticks((plobject.lat[0], plobject.lat[8], plobject.lat[16], 
-                plobject.lat[24], plobject.lat[-1]),
+    plt.yticks((plobject.lat[0], plobject.lat[7], plobject.lat[15], 
+                plobject.lat[23], plobject.lat[31]),
                 ('90N', '45N', '0', '45S', '90S'))
     cbar = plt.colorbar(orientation='vertical', fraction=0.05)
     cbar.set_label(unit, fontsize=fsize-2)
@@ -340,8 +340,8 @@ def plot_column(plobject, cube, title = 'Planet', unit='$10^{-5}$ kg m$^{-2}$',
 def limb_mass(plobject, inputcol):
     """ Calculate total haze mass at planetary limb
         From vertically integrated haze mass loading column"""
-    westsum = (np.sum(inputcol[:,16]*plobject.area[:,16]))
-    eastsum = (np.sum(inputcol[:,48]*plobject.area[:,48]))
+    westsum = (np.sum(inputcol[:,15]*plobject.area[:,15]))
+    eastsum = (np.sum(inputcol[:,47]*plobject.area[:,47]))
     limbsum = westsum + eastsum
        
     return westsum, eastsum, limbsum
@@ -362,7 +362,7 @@ def mass_distribution(plobject, inputaxis, inputdata, save=False,
     plt.xlabel('Planet rotation period [days]', fontsize=fsize)
     plt.ylabel('Haze mass [kg/m2]', fontsize=fsize)
     plt.ylim((0.0, 3.6e-05))
-    plt.legend()
+    plt.legend(loc='upper right')
     if saveformat == 'eps':
         fig.tight_layout()
     if save == True:
@@ -387,7 +387,7 @@ def tau_distribution(plobject, inputaxis, inputdata, save=False,
     plt.title('Percent of tropopause where limb is optically thick', fontsize=fsize)
     plt.xlabel('Planet rotation period [days]', fontsize=fsize)
     plt.ylabel('Percent [%]', fontsize=fsize)
-    plt.legend()
+    plt.legend(loc='lower right')
     if saveformat == 'eps':
         fig.tight_layout()
     if save == True:
@@ -403,10 +403,10 @@ def tau_contour(plobject, xaxis, yaxis, inputdata, save=False,
     """ Contour fill of max limb tau vs height and rotation rate"""
     fig, ax = plt.subplots(figsize=(8,5))
     plt.contourf(np.array(xaxis), np.array(yaxis), np.array(inputdata),
-                cmap='plasma')
+                levels=np.arange(0,21,1), cmap='plasma')
     plt.title('Max optical depth at planetary limb', fontsize=fsize)
     plt.xlabel('Planet rotation period [days]', fontsize=fsize)
-    plt.ylabel('Height [mbar]', fontsize=fsize)
+    plt.ylabel('Pressure [mbar]', fontsize=fsize)
     plt.gca().invert_yaxis()
     cbar = plt.colorbar(orientation='vertical', fraction=0.05)
     cbar.set_label(r'$\tau$', fontsize=fsize-2)
@@ -423,7 +423,7 @@ def tau_contour(plobject, xaxis, yaxis, inputdata, save=False,
 def distribution(plobject, inputaxis, inputlists, save=False,
                 savename='plotname.png', saveformat='png', fsize=14):
     """ Plot total integrated haze at terminator against particle size"""
-    limb_area = np.sum(plobject.area[:,16]) + np.sum(plobject.area[:,48])    
+    limb_area = np.sum(plobject.area[:,15]) + np.sum(plobject.area[:,47])    
     fig, ax = plt.subplots(figsize=(8,5))    
     plt.scatter(np.array(inputaxis), np.array(inputlists[0])/limb_area, 
             c='g', label='1000 kg/m$^3$')
@@ -500,7 +500,7 @@ def distribution_norm(plobject, inputaxis, inputlists, dens=1, save=False,
     else:
         plt.show()    
     
-def compare_profiles(plobject, pdensity=1262, proflat=16, proflon=48,
+def compare_profiles(plobject, pdensity=1262, proflat=15, proflon=47,
                     titleloc='eastern terminator', save=False,
                     savename='plotname.png', saveformat='png'):
     
@@ -547,37 +547,45 @@ def compare_profiles(plobject, pdensity=1262, proflat=16, proflon=48,
     
     return
     
-def mmr_map(plobject, item, level=5, cpower=7, 
+def mmr_map(plobject, item, level=5, cpower=9, 
             save=False, savename='plotname.png', 
             saveformat='png', fsize=14):
     
     coeff = 10**cpower
     
-    if plobject.name == 'trap':
-        clevs = np.arange(0.0, 0.021, 0.001)
-    elif plobject.name == 'wolf':
-        clevs = np.arange(0.0, 0.06, 0.002)
-    else:
-        print('Check Planet object name')
-    
+    # if plobject.name == 'trap':
+    #     clevs = np.arange(0.0, 0.021, 0.001)
+    # elif plobject.name == 'wolf':
+    #     clevs = np.arange(0.0, 0.06, 0.002)
+    # else:
+    #     print('Check Planet object name')
+#    clevs = np.arange(0.0, 1.1, 0.1)
+    if float(plobject.rotperiod) < 2.0:
+        clevs = np.arange(0.0, 20, 0.1)
+    elif (float(plobject.rotperiod) >= 2.0) and (float(plobject.rotperiod) < 4.0):
+        clevs = np.arange(0.0, 6.1, 0.01)
+    elif (float(plobject.rotperiod) >= 4.0) and (float(plobject.rotperiod) < 13.0):
+        clevs = np.arange(0.0, 6.1, 0.01)
+    elif float(plobject.rotperiod) >= 13.0:
+        clevs = np.arange(0.0, 6.1, 0.01)
     fig, ax = plt.subplots(figsize=(8,5))    
     plt.contourf(plobject.lon, plobject.lat, 
                 np.mean(plobject.data[item][:,level,:,:],axis=0)*coeff,
                  levels=clevs,
                  cmap='plasma')
     plt.title('Mass mixing ratio at %s mbar' % 
-              (np.round(np.mean(plobject.flpr[:,level,16,32], axis=0)/100)),
+              (np.round(np.mean(plobject.flpr[:,level,15,31], axis=0)/100)),
               fontsize=fsize)
     plt.xlabel('Longitude [deg]', fontsize=fsize)
     plt.ylabel('Latitude [deg]', fontsize=fsize)
-    plt.xticks((plobject.lon[0], plobject.lon[16], plobject.lon[32], 
-                plobject.lon[48], plobject.lon[-1]), 
+    plt.xticks((plobject.lon[0], plobject.lon[15], plobject.lon[31], 
+                plobject.lon[47], plobject.lon[63]), 
                 ('180W', '90W', '0','90E','180E'))
-    plt.yticks((plobject.lat[0], plobject.lat[8], plobject.lat[16], 
-                plobject.lat[24], plobject.lat[-1]),
+    plt.yticks((plobject.lat[0], plobject.lat[7], plobject.lat[15], 
+                plobject.lat[23], plobject.lat[31]),
                 ('90N', '45N', '0', '45S', '90S'))
     cbar = plt.colorbar(orientation='vertical', fraction=0.05)
-    cbar.set_label('$10^{-7}$ kg/kg', loc='center', fontsize=fsize-2)
+    cbar.set_label('$10^{-9}$ kg/kg', loc='center', fontsize=fsize-2)
     if saveformat == 'eps':
         fig.tight_layout()
     if save == True:
@@ -673,9 +681,9 @@ def compare_planets(plobjects, ndata=3, level=5, n=2, qscale=10, fsize=14,
         ax[4, i].quiverkey(q1, X=0.9, Y=1.05, U=qscale*2, label='%s m/s' %str(qscale*2),
                      labelpos='E', coordinates='axes')
         ax[4,i].set_title(f'{int(np.mean(plobject.flpr[:,level,:,:])/100)} mbar', fontsize=fsize)
-        ax[4, i].set_xticks((0, 16, 32, 48, 64), 
+        ax[4, i].set_xticks((0, 15, 31, 47, 63), 
                     ('180W', '90W', '0','90E','180E'))
-        ax[4, i].set_yticks((0, 8, 16, 24, 32 ),
+        ax[4, i].set_yticks((0, 7, 15, 23, 31 ),
                     ('90S', '45S', '0', '45N', '90N'))
         ax[4, i].set_xlabel('Longitude [deg]', fontsize=fsize)
         ax[4, 0].set_ylabel('Horizontal and vertical winds [m/s] \n Latitude [deg]', fontsize=fsize)
@@ -703,7 +711,7 @@ def mmr2n(plobject, item='mmr', partrad=5e-07, pdens=1272):
     particle_mass = sphere_vol*particle_den
     
     outcube = mmr_raw*(1/particle_mass)*plobject.rhog # particles/m3
-    nsource = plobject.msource*(1/particle_mass)*np.mean(plobject.rhog[:,0,16,32], axis=0)
+    nsource = plobject.msource*(1/particle_mass)*np.mean(plobject.rhog[:,0,15,31], axis=0)
     return outcube, nsource
     
 def tau(plobject, item, qext, prad, pdens, time_slice=-1, meaning=True,
@@ -720,8 +728,8 @@ def tau(plobject, item, qext, prad, pdens, time_slice=-1, meaning=True,
         nrho = nrho[time_slice,:,:,:]
         heights = plobject.flpr[time_slice,:,:,:]
         
-    west = nrho[:,:,16]*qext*np.pi*(prad**2)*1000000
-    east = nrho[:,:,48]*qext*np.pi*(prad**2)*1000000
+    west = nrho[:,:,15]*qext*np.pi*(prad**2)*1000000
+    east = nrho[:,:,47]*qext*np.pi*(prad**2)*1000000
     limb = np.concatenate((west, east[:,::-1]), axis=1)
     heights = np.mean(heights, axis=(1,2))/100
     
@@ -737,7 +745,7 @@ def tau(plobject, item, qext, prad, pdens, time_slice=-1, meaning=True,
     if float(plobject.rotperiod) < 2.0:
         clevs = np.arange(0.0, 14.1, 1.0)
     elif (float(plobject.rotperiod) >= 2.0) and (float(plobject.rotperiod) < 4.0):
-        clevs = np.arange(0.0, 3.1, 0.5)
+        clevs = np.arange(0.0, 3.1, 0.2)
     elif (float(plobject.rotperiod) >= 4.0) and (float(plobject.rotperiod) < 13.0):
         clevs = np.arange(0.0, 18.1, 1.0)
     elif float(plobject.rotperiod) >= 13.0:
@@ -746,7 +754,7 @@ def tau(plobject, item, qext, prad, pdens, time_slice=-1, meaning=True,
     if pplot == True:
 
         [r, th] = np.meshgrid(heights, np.radians(np.arange(0,64)*5.75))
-        fig = plt.figure(figsize=(5,5))
+        fig = plt.figure(figsize=(4,5))
         ax = fig.add_subplot(111, polar=True)
         ax.set_theta_zero_location('N')
         ax.set_theta_direction(+1)
@@ -757,7 +765,7 @@ def tau(plobject, item, qext, prad, pdens, time_slice=-1, meaning=True,
         ax.set_rlim(bottom=heights[-1], top=heights[0]+1)
         ax.set_title('Haze optical depth per 1000 km \n at planetary limb',
                      fontsize=fsize)
-        cbar = plt.colorbar(contf, pad=0.1, orientation='vertical', 
+        cbar = plt.colorbar(contf, pad=0.15, orientation='vertical', 
                             fraction=0.05)
         cbar.set_label(r'$\tau$', fontsize=fsize-2)
         rlabels = ax.get_ymajorticklabels()
@@ -824,9 +832,9 @@ def compare_years(yearlist, startyear=0, proflat=16, proflon=32, clevel=8):
     
     """ Args for proflon:
         0: Antistellar point
-        16: Western terminator
-        32: Substellar point
-        48: Eastern terminator
+        15: Western terminator
+        31: Substellar point
+        47: Eastern terminator
         63: Antistellar point again """
     
     ref_year = yearlist[0]
@@ -879,11 +887,11 @@ def surface_temp(plobject, fsize=14):
     plt.title('Surface temperature')
     plt.xlabel('Longitude [deg]')
     plt.ylabel('Latitude [deg]')
-    plt.xticks((plobject.lon[0], plobject.lon[16], plobject.lon[32], 
-                plobject.lon[48], plobject.lon[-1]), 
+    plt.xticks((plobject.lon[0], plobject.lon[15], plobject.lon[31], 
+                plobject.lon[47], plobject.lon[63]), 
                 ('180W', '90W', '0','90E','180E'))
-    plt.yticks((plobject.lat[0], plobject.lat[8], plobject.lat[16], 
-                plobject.lat[24], plobject.lat[-1]),
+    plt.yticks((plobject.lat[0], plobject.lat[7], plobject.lat[15], 
+                plobject.lat[23], plobject.lat[31]),
                 ('90N', '45N', '0', '45S', '90S'))
     cbar = plt.colorbar(orientation='vertical', fraction=0.05)
     cbar.ax.set_title('K', fontsize=fsize-2)
@@ -912,7 +920,7 @@ def wind_vectors(plobject, time_slice=-1, level=5, n=2, qscale=10, meaning=True,
     nlat = len(data['lat'])
     levels = data['lev']
     surfpress = np.mean(data['ps'], axis=0)
-    heights = levels*surfpress[16,32]
+    heights = levels*surfpress[15,31]
     titleterm = 'Horizonal and vertical wind'
     
     X, Y = np.meshgrid(np.arange(0, len(plobject.lon)), np.arange(0, len(plobject.lat)))
@@ -930,9 +938,9 @@ def wind_vectors(plobject, time_slice=-1, level=5, n=2, qscale=10, meaning=True,
                  labelpos='E', coordinates='axes')
     plt.title('%s, %s \n %s mbar' %
               (titleterm, titletime, np.round(heights[level],0)), fontsize=fsize)
-    plt.xticks((0, 16, 32, 48, 64), 
+    plt.xticks((0, 15, 31, 47, 63), 
                 ('180W', '90W', '0','90E','180E'))
-    plt.yticks((0, 8, 16, 24, 32 ),
+    plt.yticks((0, 7, 15, 23, 31 ),
                 ('90S', '45S', '0', '45N', '90N'))
     plt.xlabel('Longitude [deg]', fontsize=fsize)
     plt.ylabel('Latitude [deg]', fontsize=fsize)
@@ -957,7 +965,7 @@ def cloud_cover(data, time_slice=-1, level=5, meaning=False, total_cloud=False):
     levels = data['lev']
     
     surfpress = np.mean(data['ps'], axis=0)
-    heights = levels*surfpress[16,32]
+    heights = levels*surfpress[15,31]
     
     if total_cloud == True:
         cloud_data = data['clt']
@@ -993,7 +1001,7 @@ def vert_profile(plobject, time_slice=-1, select='t', meaning=True,
     levels = data['lev']
     
     surfpress = np.mean(data['ps'], axis=0)
-    heights = levels*surfpress[16,32]
+    heights = levels*surfpress[15,31]
     
     if select == 't':
         cube = data['ta']
@@ -1011,13 +1019,13 @@ def vert_profile(plobject, time_slice=-1, select='t', meaning=True,
         else:
             print('Check Planet object name')
     elif select == 'mmr':
-        cube = data['mmr']*plobject.rhog
+        cube = data['mmr']*plobject.rhog*1e09
         titleterm = 'Haze mass loading'
-        unit = 'kg/m$^3$'
+        unit = '$10^{-9}$ kg/m$^3$'
         if plobject.name == 'trap':
-            limits = (-8e-10, 5e-09)
+            limits = (-0.8, 5)
         elif plobject.name == 'wolf':
-            limits = (-8e-10, 5e-09)
+            limits = (-0.8, 5)
         else:
             print('Check Planet object name')
     elif select == 'no':
@@ -1066,25 +1074,25 @@ def vert_profile(plobject, time_slice=-1, select='t', meaning=True,
     westlist = []
     eastlist = []
     for l in range(0, len(levels)):
-        dayside = np.sum(plotme[l,:,16:49]*plobject.area[:,16:49]) /    \
-                  np.sum(plobject.area[:,16:49])
+        dayside = np.sum(plotme[l,:,15:48]*plobject.area[:,15:48]) /    \
+                  np.sum(plobject.area[:,15:48])
         daylist.append(dayside)
-        nightside = (np.sum(plotme[l,:,49:]*plobject.area[:,49:]) +     \
-                     np.sum(plotme[l,:,:17]*plobject.area[:,:17])) /    \
-                    (np.sum(plobject.area[:,49:]) + np.sum(plobject.area[:,:17]))
+        nightside = (np.sum(plotme[l,:,48:]*plobject.area[:,48:]) +     \
+                     np.sum(plotme[l,:,:16]*plobject.area[:,:16])) /    \
+                    (np.sum(plobject.area[:,48:]) + np.sum(plobject.area[:,:16]))
         nightlist.append(nightside)
-        limb = (np.sum(plotme[l,:,16]*plobject.area[:,16]) +             \
-                np.sum(plotme[l,:,48]*plobject.area[:,48])) /            \
-                (np.sum(plobject.area[:,16]) + np.sum(plobject.area[:,48]))
+        limb = (np.sum(plotme[l,:,15]*plobject.area[:,15]) +             \
+                np.sum(plotme[l,:,47]*plobject.area[:,47])) /            \
+                (np.sum(plobject.area[:,15]) + np.sum(plobject.area[:,47]))
         limblist.append(limb)
-        west = np.sum(plotme[l,:,16]*plobject.area[:,16])/              \
-              (np.sum(plobject.area[:,16]))
+        west = np.sum(plotme[l,:,15]*plobject.area[:,15])/              \
+              (np.sum(plobject.area[:,15]))
         westlist.append(west)
-        east = np.sum(plotme[l,:,48]*plobject.area[:,48])/              \
-              (np.sum(plobject.area[:,48]))
+        east = np.sum(plotme[l,:,47]*plobject.area[:,47])/              \
+              (np.sum(plobject.area[:,47]))
         eastlist.append(east)
 
-    fig, ax = plt.subplots(figsize=(5,5))    
+    fig, ax = plt.subplots(figsize=(4,5))    
 #    plt.plot(plotme[:,16,32], heights, color='k', label='Substellar')
 #    plt.plot(plotme[:,16,0], heights, color='m', label='Antistellar')
     plt.plot(np.array(daylist), heights, color='k', linestyle='dashed', label='Dayside mean')
@@ -1096,9 +1104,9 @@ def vert_profile(plobject, time_slice=-1, select='t', meaning=True,
     plt.xlim(limits)
 
     plt.title(f'{titleterm} profiles', fontsize=fsize) 
-    plt.ylabel('Height [mbar]', fontsize=fsize)
+    plt.ylabel('Pressure [mbar]', fontsize=fsize)
     plt.xlabel(f'{titleterm} [{unit}]', fontsize=fsize)
-    plt.legend()
+    plt.legend(fontsize='small')
     if saveformat == 'eps':
         fig.tight_layout()
     if save == True:
@@ -1117,7 +1125,7 @@ def zmzw(plobject, time_slice=-1, meaning=True, save=False,
     lats = data['lat']
     levels = data['lev']
     surfpress = np.mean(data['ps'], axis=0)
-    heights = levels*surfpress[16,32]
+    heights = levels*surfpress[15,31]
     
     cube = data['ua']
     
@@ -1166,7 +1174,7 @@ def vterm(plobject, time_slice=-1, level=0, meaning=True, fsize=14,
     data = plobject.data
     levels = data['lev']
     surfpress = np.mean(data['ps'], axis=0)
-    heights = np.round(levels*surfpress[16,32], 0)
+    heights = np.round(levels*surfpress[15,31], 0)
     vel = plobject.vterm
     
     if meaning==True:
@@ -1194,11 +1202,11 @@ def vterm(plobject, time_slice=-1, level=0, meaning=True, fsize=14,
     cbar.ax.set_title('$10^{-4} $m/s') 
     plt.xlabel('Longitude [deg]', fontsize=fsize)
     plt.ylabel('Latitude [deg]', fontsize=fsize)
-    plt.xticks((plobject.lon[0], plobject.lon[16], plobject.lon[32], 
-                plobject.lon[48], plobject.lon[-1]), 
+    plt.xticks((plobject.lon[0], plobject.lon[15], plobject.lon[31], 
+                plobject.lon[47], plobject.lon[63]), 
                 ('180W', '90W', '0','90E','180E'))
-    plt.yticks((plobject.lat[0], plobject.lat[8], plobject.lat[16], 
-                plobject.lat[24], plobject.lat[-1]),
+    plt.yticks((plobject.lat[0], plobject.lat[7], plobject.lat[15], 
+                plobject.lat[23], plobject.lat[31]),
                 ('90N', '45N', '0', '45S', '90S'))
     if saveformat == 'eps':
         fig.tight_layout()
@@ -1211,11 +1219,11 @@ def vterm(plobject, time_slice=-1, level=0, meaning=True, fsize=14,
         
 
     fig, ax = plt.subplots(figsize=(5,5))    
-    plt.plot(balance[:,16,32], heights, color='k', label='Substellar')
-    plt.plot(balance[:,16,0], heights, color='m', label='Antistellar')
-    plt.plot(balance[:,16,16], heights, color='r', label='West terminator eq.')
-    plt.plot(balance[:,16,48], heights, color='b', label='East terminator eq.')
-    plt.plot(balance[:,3,48], heights, color='r', linestyle='dashed', 
+    plt.plot(balance[:,15,31], heights, color='k', label='Substellar')
+    plt.plot(balance[:,15,0], heights, color='m', label='Antistellar')
+    plt.plot(balance[:,15,15], heights, color='r', label='West terminator eq.')
+    plt.plot(balance[:,15,47], heights, color='b', label='East terminator eq.')
+    plt.plot(balance[:,3,47], heights, color='r', linestyle='dashed', 
                                                      label='South gyre')
     plt.plot(balance[:,28,48], heights, color='b', linestyle='dashed', 
                                                      label='North gyre')
@@ -1223,7 +1231,7 @@ def vterm(plobject, time_slice=-1, level=0, meaning=True, fsize=14,
     plt.xlim((-2.5, 12.0))
 
     plt.title('Net particle velocity profiles', fontsize=fsize) 
-    plt.ylabel('Height [mbar]', fontsize=fsize)
+    plt.ylabel('Pressure [mbar]', fontsize=fsize)
     plt.xlabel('$10^{-4} $m/s', fontsize=fsize)
     plt.legend()
     if saveformat == 'eps':
@@ -1242,7 +1250,7 @@ def wxsection(plobject, time_slice=-1, meaning=True, save=False,
     
     levels = plobject.data['lev']
     surfpress = np.mean(plobject.data['ps'], axis=0)
-    heights = np.round(levels*surfpress[16,32], 0)
+    heights = np.round(levels*surfpress[15,31], 0)
     
     if meaning == True:
         w = np.mean(plobject.data['wa'], axis=0)*1e04
@@ -1253,11 +1261,11 @@ def wxsection(plobject, time_slice=-1, meaning=True, save=False,
     clevs = np.arange(-5,15,1)    
     fig, (ax1, ax2) = plt.subplots(1, 2, sharey=True, figsize=(8,5))
     fig.suptitle('Vertical wind cross-sections', fontsize=fsize)
-    im1 = ax1.contourf(plobject.lon, heights, w[:,16,:], levels=clevs,
+    im1 = ax1.contourf(plobject.lon, heights, w[:,15,:], levels=clevs,
                        cmap='RdBu_r', norm=TwoSlopeNorm(0))
     ax1.set_xlabel('Longitude [deg]')
-    ax1.set_ylabel('Height [mbar]')
-    im2 = ax2.contourf(plobject.lat, heights, w[:,:,32], levels=clevs,
+    ax1.set_ylabel('Pressure [mbar]')
+    im2 = ax2.contourf(plobject.lat, heights, w[:,:,31], levels=clevs,
                        cmap='RdBu_r', norm=TwoSlopeNorm(0))
     ax2.set_xlabel('Latitude [deg]')
     plt.gca().invert_yaxis()

@@ -31,7 +31,7 @@ def init_wolf(args):
         # Overwrite default Wolf 1061c period with period used in sim
         pl.load_data(top_dir + input_dir + '/' + item, pspace=False)
         # Load the file containing simulation data
-        pl.savepath = '/home/s1144983/aerosim/wolfspace/'
+        pl.savepath = '/home/s1144983/aerosim/wolfeps/'
         # Change default directory to save plots to
         pl.add_rhog()
         # Calculate and add air density
@@ -75,7 +75,7 @@ def winds(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), level=0, savear
             print(float(plobject.rotperiod))
             wind_vectors(plobject,
                          level=level,
-                         savename='winds_lev_' + str(level) + '_' + 
+                         savename=str(plobject.name) + '_winds_lev_' + str(level) + '_' + 
                          str(plobject.rotperiod) + '.' + sformat, 
                          save=savearg, saveformat=sformat, fsize=14)
             
@@ -84,8 +84,8 @@ def mmr_maps(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), level=5, sav
     for plobject in objlist:
         if float(plobject.rotperiod) in list(select):
             mmr_map(plobject, item='mmr',
-                    level=5, cpower=7,
-                    savename='mmrlev_' + str(level) + '_' + 
+                    level=5, cpower=9,
+                    savename=str(plobject.name) + '_mmrlev_' + str(level) + '_' + 
                     str(plobject.rotperiod) + '.' + sformat, 
                     save=savearg, saveformat=sformat, fsize=14)
             
@@ -98,7 +98,7 @@ def columns(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), savearg=False
             titlestr = f'Rotation period = {titlerot} days'
             plot_column(plobject, haze_column, title = titlestr, 
                         unit = '$10^{-5}$ kg m$^{-2}$', cpower=5,
-                        savename='column_' + str(plobject.rotperiod) + 
+                        savename=str(plobject.name) + '_column_' + str(plobject.rotperiod) + 
                         '.' + sformat, 
                         save=savearg, saveformat=sformat, fsize=14)
             
@@ -107,7 +107,7 @@ def mmrprofiles(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), savearg=F
     for plobject in objlist:
         if float(plobject.rotperiod) in list(select):
             vert_profile(plobject, select='mmr',
-                         savename = '_profiles_' + str(plobject.rotperiod) +
+                         savename = str(plobject.name) + '_profiles_' + str(plobject.rotperiod) +
                          '.' + sformat,
                          save=savearg, saveformat=sformat, fsize=14)
             
@@ -116,11 +116,11 @@ def windprofiles(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), savearg=
     for plobject in objlist:
         if float(plobject.rotperiod) in list(select):
             vert_profile(plobject, select='vterm',
-                         savename = '_profiles_' + str(plobject.rotperiod) +
+                         savename = str(plobject.name) + '_profiles_' + str(plobject.rotperiod) +
                          '.' + sformat,
                          save=savearg, saveformat=sformat, fsize=14)
             vert_profile(plobject, select='w',
-                         savename = '_profiles_' + str(plobject.rotperiod) +
+                         savename = str(plobject.name) + '_profiles_' + str(plobject.rotperiod) +
                          '.' + sformat,
                          save=savearg, saveformat=sformat, fsize=14)
             
@@ -129,7 +129,7 @@ def vterms(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), level=0, savea
     for plobject in objlist:
         if float(plobject.rotperiod) in list(select):
             vterm(plobject, level=level, 
-                  savename='vterm_' + str(plobject.rotperiod) + '.' + sformat,
+                  savename=str(plobject.name) + '_vterm_' + str(plobject.rotperiod) + '.' + sformat,
                   save=savearg, saveformat=sformat, fsize=14)
             
 def taus(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), savearg=False, sformat='png'):
@@ -138,7 +138,7 @@ def taus(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), savearg=False, s
         if float(plobject.rotperiod) in list(select):
             tau(plobject, item='mmr', qext=plobject.sw1[-2], prad=5e-07, 
                 pdens=1272,
-                save=savearg, savename='tau_' + str(plobject.rotperiod) + 
+                save=savearg, savename=str(plobject.name) + '_tau_' + str(plobject.rotperiod) + 
                 '.' + sformat, 
                 saveformat=sformat, fsize=14, pplot=True)
             
@@ -146,7 +146,7 @@ def zmzws(objlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), savearg=False, 
     
     for plobject in objlist:
         if float(plobject.rotperiod) in list(select):
-            zmzw(plobject, save=savearg, savename='zmzw_' + 
+            zmzw(plobject, save=savearg, savename=str(plobject.name) + '_zmzw_' + 
                  str(plobject.rotperiod) + '.' + sformat,
                  saveformat=sformat, fsize=14)
                  
@@ -167,7 +167,7 @@ def bulk_mass(objlist, savearg=False, sformat='png'):
         tlist.append(limb_total)
     mlist = [wlist, elist, tlist]
     mass_distribution(objlist[0], plist, mlist, save=savearg,
-                      savename='limb_mass' + '.' + sformat,
+                      savename=str(plobject.name) + '_limb_mass' + '.' + sformat,
                       saveformat=sformat, fsize=14)
                       
 def bulk_tau(objlist, savearg=False, sformat='png'):
@@ -181,7 +181,7 @@ def bulk_tau(objlist, savearg=False, sformat='png'):
         plist.append(prot)
         west, east, limb, levs = tau(plobject, item='mmr', qext=plobject.sw1[-2], 
             prad=5e-07, pdens=1272,
-            save=savearg, savename='tau_' + str(plobject.rotperiod) + 
+            save=savearg, savename=str(plobject.name) + '_tau_' + str(plobject.rotperiod) + 
             '.' + sformat, 
             saveformat=sformat, pplot=False)
         area3 = []
@@ -189,33 +189,33 @@ def bulk_tau(objlist, savearg=False, sformat='png'):
         area1 = []
         for index, element in np.ndenumerate(west[1,:]):
             if element > 3.0:
-                ar3 = plobject.area[index,16]
+                ar3 = plobject.area[index,15]
                 area3.append(ar3)
             if element > 2.0:
-                ar2 = plobject.area[index,16]
+                ar2 = plobject.area[index,15]
                 area2.append(ar2)
             if element > 1.0:
-                ar1 = plobject.area[index,16]
+                ar1 = plobject.area[index,15]
                 area1.append(ar1)
         for index, element in np.ndenumerate(east[1,:]):
             if element > 3.0:
-                ar3 = plobject.area[index,48]
+                ar3 = plobject.area[index,47]
                 area3.append(ar3)
             if element > 2.0:
-                ar2 = plobject.area[index,16]
+                ar2 = plobject.area[index,15]
                 area2.append(ar2)
             if element > 1.0:
-                ar1 = plobject.area[index,16]
+                ar1 = plobject.area[index,15]
                 area1.append(ar1)
-        areacov3 = np.sum(np.array(area3))/(2*np.sum(plobject.area[:,16]))
-        areacov2 = np.sum(np.array(area2))/(2*np.sum(plobject.area[:,16]))
-        areacov1 = np.sum(np.array(area1))/(2*np.sum(plobject.area[:,16]))        
+        areacov3 = np.sum(np.array(area3))/(2*np.sum(plobject.area[:,15]))
+        areacov2 = np.sum(np.array(area2))/(2*np.sum(plobject.area[:,15]))
+        areacov1 = np.sum(np.array(area1))/(2*np.sum(plobject.area[:,15]))        
         t3.append(areacov3)
         t2.append(areacov2)
         t1.append(areacov1)
     ttop = [t1, t2, t3]
     tau_distribution(objlist[0], plist, ttop, save=savearg,
-                      savename='limb_tau' + '.' + sformat,
+                      savename=str(plobject.name) + '_limb_tau' + '.' + sformat,
                       saveformat=sformat, fsize=14)
 
 def tau_map(objlist, savearg=False, sformat='png'):
@@ -227,7 +227,7 @@ def tau_map(objlist, savearg=False, sformat='png'):
         plist.append(prot)
         west, east, limb, levs = tau(plobject, item='mmr', qext=plobject.sw1[-2], 
             prad=5e-07, pdens=1272,
-            save=savearg, savename='tau_' + str(plobject.rotperiod) + 
+            save=savearg, savename=str(plobject.name) + '_tau_' + str(plobject.rotperiod) + 
             '.' + sformat, 
             saveformat=sformat, pplot=False)
         hlist = []
@@ -239,7 +239,7 @@ def tau_map(objlist, savearg=False, sformat='png'):
     hsplot = np.mean(objlist[0].flpr, axis=(0,2,3))/100
     tau_contour(objlist[0], plist, hsplot,
                 tauplot.T, save=savearg,
-                savename='tau_contour' + '.' + sformat,
+                savename=str(plobject.name) + '_tau_contour' + '.' + sformat,
                 saveformat=sformat, fsize=14)
 
 def compare_refs(objlist, savearg=False, sformat='png'):
@@ -269,17 +269,18 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # Parameter space sims
     all_wolfs = init_wolf(args)
-#    winds(all_wolfs, level=0, savearg=True, sformat='png')
-#    zmzws(all_wolfs, savearg=True, sformat='png')
-#    mmr_maps(all_wolfs, savearg=True, sformat='png')
-#    columns(all_wolfs, savearg=True, sformat='png')
-#    mmrprofiles(all_wolfs, savearg=True, sformat='png')
+#    winds(all_wolfs, level=0, savearg=True, sformat='eps')
+    # for l in [1,5]:
+    #     mmr_maps(all_wolfs, level=l, savearg=True, sformat='eps')
+#    zmzws(all_wolfs, savearg=True, sformat='eps')
+#    columns(all_wolfs, savearg=True, sformat='eps')
+#    mmrprofiles(all_wolfs, savearg=True, sformat='eps')
 #    windprofiles(all_wolfs, savearg=True, sformat='png')
-    vterms(all_wolfs, savearg=True, sformat='png')
-#    taus(all_wolfs, savearg=True, sformat='png')
-#    bulk_mass(all_wolfs, savearg=True, sformat='png')
-#    bulk_tau(all_wolfs, savearg=True, sformat='png')
-#    tau_map(all_wolfs, savearg=True, sformat='png')
+#    vterms(all_wolfs, savearg=True, sformat='png')
+    taus(all_wolfs, savearg=True, sformat='eps')
+#    bulk_mass(all_wolfs, savearg=True, sformat='eps')
+#    bulk_tau(all_wolfs, savearg=True, sformat='eps')
+#    tau_map(all_wolfs, savearg=True, sformat='eps')
     
     # Reference sims
 #    ref_wolfs = init_ref(args) 
