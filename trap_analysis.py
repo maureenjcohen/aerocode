@@ -48,23 +48,27 @@ def init_ref(args):
     with and without haze"""
     
     top_dir = '/exports/csce/datastore/geos/users/s1144983/exoplasim_data/'    
-    ref_dir = args.ref
-    infiles = sorted(os.listdir(ref_dir))
-    print(infiles)
+    ref_dir = args.ref[0]
+    print(ref_dir)
+    infiles = sorted(os.listdir(top_dir + ref_dir))
     
     ref_list = []    
     for item in infiles:
         pl = Planet(trapdict)
-        # Instantiate Planet object with TRAPPIST-1e dictionary
-        pl.load_data(top_dir + item)
-        # Load data using filename
+        rot = item[5:7]
+        print(rot)
+        # Extract rotation period from filename
+        pl.rotperiod = rot
+        # Overwrite default TRAP-1e rotation period with period used in sim
+        pl.load_data(top_dir + ref_dir + '/' + item, pspace=False)
+        # Load the file containing simulation data
         pl.savepath = '/home/s1144983/aerosim/trapref/'
         # Change default directory to save plots to
         pl.add_rhog()
         # Calculate and add air density
         pl.area_weights()
         # Calculate and add area weights for area-weighted meaning
-        planet_list.append(pl)
+        ref_list.append(pl)
         
     return ref_list
 
@@ -240,6 +244,60 @@ def tau_map(objlist, savearg=False, sformat='png'):
                 tauplot.T, save=savearg,
                 savename=str(plobject.name) + '_tau_contour' + '.' + sformat,
                 saveformat=sformat, fsize=14)
+    
+def global_climate(objlist, contrlist, savearg=False, sformat='png'):
+    
+    plist = []
+    rlist = []
+    clist = []
+    vlist = []
+    cvlist = []
+    olr = []
+    colr = []
+    for plobject in objlist:
+        prot = float(plobject.rotperiod)
+        plist.append(prot)
+        tmean = np.mean(plobject.data['ts'], axis=0)
+        gmean = np.sum(tmean*plobject.area)/np.sum(plobject.area)
+        rlist.append(gmean)
+        
+        omean = np.mean(plobject.data['prw'], axis=0)
+        gomean = np.sum(omean*plobject.area)/np.sum(plobject.area)
+        vlist.append(gomean)
+        
+        dayside = np.sum(omean[:,16:48]*plobject.area[:,16:48])/np.sum(plobject.area[:,16:48])
+        nightside = (np.sum(omean[:,:16]*plobject.area[:,:16]) + \
+                    np.sum(omean[:,48:]*plobject.area[:,48:]))/  \
+                (np.sum(plobject.area[:,:16]) + np.sum(plobject.area[:,48:]))
+        eta = nightside/(dayside+nightside)
+        olr.append(eta)
+        
+    for plobject in contrlist:
+        tmean = np.mean(plobject.data['ts'], axis=0)
+        gmean = np.sum(tmean*plobject.area)/np.sum(plobject.area)
+        clist.append(gmean)
+        
+        omean = np.mean(plobject.data['prw'], axis=0)
+        gomean = np.sum(omean*plobject.area)/np.sum(plobject.area)
+        cvlist.append(gomean)
+        
+        dayside = np.sum(omean[:,16:48]*plobject.area[:,16:48])/np.sum(plobject.area[:,16:48])
+        nightside = (np.sum(omean[:,:16]*plobject.area[:,:16]) + \
+                    np.sum(omean[:,48:]*plobject.area[:,48:]))/  \
+                (np.sum(plobject.area[:,:16]) + np.sum(plobject.area[:,48:]))
+        eta = nightside/(dayside+nightside)
+        colr.append(eta)
+        
+    surf_space(objlist[0], plist, rlist, clist, save=savearg,
+               savename=str(plobject.name) + '_stemp_space' + '.' + sformat, 
+               saveformat=sformat, fsize=14)
+    vapour_space(objlist[0], plist, vlist, cvlist, save=savearg,
+               savename=str(plobject.name) + '_vap_space' + '.' + sformat, 
+               saveformat=sformat, fsize=14)
+    prw_space(objlist[0], plist, olr, colr, save=savearg,
+               savename=str(plobject.name) + '_prw_space' + '.' + sformat, 
+               saveformat=sformat, fsize=14)
+        
 
 def compare_refs(objlist, savearg=False, sformat='png'):
     
@@ -277,11 +335,12 @@ if __name__ == "__main__":
 #    mmrprofiles(all_traps, savearg=True, sformat='eps')
 #    windprofiles(all_traps, savearg=True, sformat='eps')
 #    vterms(all_traps, savearg=True, sformat='eps')
-    taus(all_traps, savearg=True, sformat='eps')
+#    taus(all_traps, savearg=True, sformat='eps')
 #    bulk_mass(all_traps, savearg=True, sformat='eps')
 #    bulk_tau(all_traps, savearg=True, sformat='eps')
 #    tau_map(all_traps, savearg=True, sformat='eps')
     
     # Reference sims
-#    ref_traps = init_ref(args) 
+    ref_traps = init_ref(args) 
 #    compare_refs(ref_traps, savearg=False, sformat='png')
+    global_climate(all_traps, ref_traps, savearg=True, sformat='eps')

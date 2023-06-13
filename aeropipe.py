@@ -10,6 +10,7 @@ import iris, os, glob, re, warnings
 import matplotlib.pyplot as plt
 import matplotlib.cm as mpl_cm
 from matplotlib.colors import TwoSlopeNorm
+from matplotlib.ticker import FormatStrFormatter
 
 
 warnings.filterwarnings('ignore')
@@ -418,6 +419,83 @@ def tau_contour(plobject, xaxis, yaxis, inputdata, save=False,
         plt.close()
     else:
         plt.show()
+        
+        
+def surf_space(plobject, inputaxis, radlist, conlist, save=False,
+                savename='surftemp_dist.png', saveformat='png',
+                fsize=14):
+    
+    fig, ax = plt.subplots(figsize=(8,5))
+    plt.plot(np.array(inputaxis), np.array(radlist), 
+                color='r', label=r'With haze')
+    plt.plot(np.array(inputaxis), np.array(conlist), 
+                color='b', label=r'Without haze')
+
+    plt.title('Global mean surface temperature', fontsize=fsize)
+    plt.xlabel('Planet rotation period [days]', fontsize=fsize)
+    plt.ylabel('Temperature [K]', fontsize=fsize)
+    ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
+    plt.legend(loc='upper right')   
+    if saveformat == 'eps':
+        fig.tight_layout()
+    if save == True:
+        plt.savefig(plobject.savepath + savename, format=saveformat, 
+                    bbox_inches='tight')
+        plt.close()
+    else:
+        plt.show()
+        
+def vapour_space(plobject, inputaxis, radlist, conlist, save=False,
+                savename='vapour_dist.png', saveformat='png',
+                fsize=14):
+    
+    fig, ax = plt.subplots(figsize=(8,5))
+    plt.plot(np.array(inputaxis), np.array(radlist), 
+                color='r', label=r'With haze')
+    plt.plot(np.array(inputaxis), np.array(conlist), 
+                color='b', label=r'Without haze')
+
+    plt.title('Global mean water vapour column', fontsize=fsize)
+    plt.xlabel('Planet rotation period [days]', fontsize=fsize)
+    plt.ylabel('Water vapour [kg/m$^2$]', fontsize=fsize)
+    ax.yaxis.set_major_formatter(FormatStrFormatter('%.0f'))
+    plt.legend(loc='upper right')   
+    if saveformat == 'eps':
+        fig.tight_layout()
+    if save == True:
+        plt.savefig(plobject.savepath + savename, format=saveformat, 
+                    bbox_inches='tight')
+        plt.close()
+    else:
+        plt.show()
+        
+def prw_space(plobject, inputaxis, radlist, conlist, save=False,
+                savename='prw_dist.png', saveformat='png',
+                fsize=14):
+    
+    fig, ax = plt.subplots(figsize=(8,5))
+    plt.plot(np.array(inputaxis), np.array(radlist), 
+                color='r', label=r'With haze')
+    plt.plot(np.array(inputaxis), np.array(conlist), 
+                color='b', label=r'Without haze')
+
+    plt.title('Fraction of water vapour on nightside', fontsize=fsize)
+    plt.xlabel('Planet rotation period [days]', fontsize=fsize)
+    plt.ylabel('Nightside vapour fraction', fontsize=fsize)
+    ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+
+    plt.legend(loc='upper right')   
+    if saveformat == 'eps':
+        fig.tight_layout()
+    if save == True:
+        plt.savefig(plobject.savepath + savename, format=saveformat, 
+                    bbox_inches='tight')
+        plt.close()
+    else:
+        plt.show()
+    
+    
+    
 
 
 def distribution(plobject, inputaxis, inputlists, save=False,
@@ -898,6 +976,7 @@ def surface_temp(plobject, fsize=14):
     plt.show()   
     
     return
+    
 
 
 def wind_vectors(plobject, time_slice=-1, level=5, n=2, qscale=10, meaning=True,
