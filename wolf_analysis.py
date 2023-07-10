@@ -298,6 +298,16 @@ def global_climate(objlist, contrlist, savearg=False, sformat='png'):
     prw_space(objlist[0], plist, olr, colr, save=savearg,
                savename=str(plobject.name) + '_prw_space' + '.' + sformat, 
                saveformat=sformat, fsize=14)
+               
+def zmzwdiffs(objlist, contrlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), savearg=False, sformat='png'):
+    
+    for plobject in objlist:
+        if float(plobject.rotperiod) in list(select):
+            for cobject in contrlist:
+                if float(cobject.rotperiod) == float(plobject.rotperiod):
+                    zmzwdiff(plobject, cobject, save=savearg, savename=str(plobject.name) + '_zmzwdiff_' + 
+                         str(plobject.rotperiod) + '.' + sformat,
+                         saveformat=sformat, fsize=14)
 
 def compare_refs(objlist, savearg=False, sformat='png'):
     
@@ -343,4 +353,6 @@ if __name__ == "__main__":
 #
     ref_wolfs = init_ref(args) 
 #    compare_refs(ref_wolfs, savearg=False, sformat='png')
-    global_climate(all_wolfs, ref_wolfs, savearg=True, sformat='eps')
+#    global_climate(all_wolfs, ref_wolfs, savearg=True, sformat='eps')
+    zmzwdiffs(all_wolfs, ref_wolfs, savearg=True, sformat='eps')
+

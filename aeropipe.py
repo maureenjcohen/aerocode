@@ -1246,6 +1246,66 @@ def zmzw(plobject, time_slice=-1, meaning=True, save=False,
     else:
         plt.show()
         
+def zmzwdiff(plobject, cobject, time_slice=-1, meaning=True, save=False, 
+         savename='zmzw.png', saveformat='png', fsize=14):
+    data = plobject.data
+    cdata = cobject.data
+    lats = data['lat']
+    levels = data['lev']
+    surfpress = np.mean(data['ps'], axis=0)
+    heights = levels*surfpress[15,31]
+    
+    cube = data['ua']
+    ccube = cdata['ua']
+    
+    if meaning == True:
+        plotme = np.mean(cube, axis=0)
+        plotcontour = np.mean(ccube, axis=0)
+    else:
+        plotme = cube[time_slice,:,:,:]
+        plotcontour = ccube[time_slice,:,:,:]
+        
+    zmu = np.mean(plotme, axis=2)
+    zmuc = np.mean(plotcontour, axis=2)
+    zmudiff = zmu - zmuc
+    
+    # if plobject.name == 'trap':
+    #     clevs = np.arange(-25, 75, 5)
+    # elif plobject.name == 'wolf':
+    #     clevs = np.arange(-40, 135, 5)
+    if float(plobject.rotperiod) < 2.0:
+        clevs = np.arange(-20, 41)
+    elif (float(plobject.rotperiod) >= 2.0) and (float(plobject.rotperiod) < 4.0):
+        clevs = np.arange(-40, 71)
+    elif (float(plobject.rotperiod) >= 4.0) and (float(plobject.rotperiod) < 13.0):
+        clevs = np.arange(-10, 131)
+    elif float(plobject.rotperiod) >= 13.0:
+        clevs = np.arange(-10, 81)
+    
+    fig, ax = plt.subplots(figsize=(5,5))
+    CF = plt.contourf(lats, heights, zmu, cmap='RdBu_r', 
+                 levels=clevs, norm=TwoSlopeNorm(0))
+    CL = plt.contour(lats, heights, zmudiff, 
+#                 levels=np.arange(np.floor(np.min(zmudiff)), np.ceil(np.max(zmudiff)), 1),
+                 levels=[-30, -20, -10, -5, -3, -1, 1, 3, 5, 10, 20, 30],
+                 colors='k', negative_linestyles='dashed', 
+                 linewidths=0.5, alpha=0.5)
+    plt.gca().invert_yaxis()
+    plt.title('Zonal mean zonal wind', fontsize=fsize)
+    plt.xlabel('Latitude [degrees]', fontsize=fsize)
+    plt.ylabel('Pressure [mbar]', fontsize=fsize)
+    cbar = plt.colorbar(CF, orientation='vertical', fraction=0.05, ticks=clevs[::10])
+    cbar.ax.set_title('m/s')
+    ax.clabel(CL, fontsize=9, inline=True)
+    if saveformat == 'eps':
+        fig.tight_layout()
+    if save == True:
+        plt.savefig(plobject.savepath + savename, format=saveformat, 
+                    bbox_inches='tight')
+        plt.close()
+    else:
+        plt.show()
+        
 
 def vterm(plobject, time_slice=-1, level=0, meaning=True, fsize=14,
           saveformat='png', save=False, savename='_vterm.png'):

@@ -298,7 +298,16 @@ def global_climate(objlist, contrlist, savearg=False, sformat='png'):
                savename=str(plobject.name) + '_prw_space' + '.' + sformat, 
                saveformat=sformat, fsize=14)
         
-
+def zmzwdiffs(objlist, contrlist, select = [0.2]+[0.5]+list(np.arange(1,31,1)), savearg=False, sformat='png'):
+    
+    for plobject in objlist:
+        if float(plobject.rotperiod) in list(select):
+            for cobject in contrlist:
+                if float(cobject.rotperiod) == float(plobject.rotperiod):
+                    zmzwdiff(plobject, cobject, save=savearg, savename=str(plobject.name) + '_zmzwdiff_' + 
+                         str(plobject.rotperiod) + '.' + sformat,
+                         saveformat=sformat, fsize=14)
+                 
 def compare_refs(objlist, savearg=False, sformat='png'):
     
     compare_planets(objlist, ndata=2, level=5, n=2, qscale=10, fsize=14,
@@ -343,4 +352,5 @@ if __name__ == "__main__":
     # Reference sims
     ref_traps = init_ref(args) 
 #    compare_refs(ref_traps, savearg=False, sformat='png')
-    global_climate(all_traps, ref_traps, savearg=True, sformat='eps')
+#    global_climate(all_traps, ref_traps, savearg=True, sformat='eps')
+    zmzwdiffs(all_traps, ref_traps, savearg=True, sformat='eps')
