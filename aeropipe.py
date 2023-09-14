@@ -361,7 +361,7 @@ def mass_distribution(plobject, inputaxis, inputdata, save=False,
                 color='k', label='Total')
     plt.title('Haze mass at planetary limb', fontsize=fsize)
     plt.xlabel('Planet rotation period [days]', fontsize=fsize)
-    plt.ylabel('Haze mass [kg/m2]', fontsize=fsize)
+    plt.ylabel('Haze mass [$kg m^{-2}$]', fontsize=fsize)
     plt.ylim((0.0, 3.6e-05))
     plt.legend(loc='upper right')
     if saveformat == 'eps':
@@ -380,12 +380,12 @@ def tau_distribution(plobject, inputaxis, inputdata, save=False,
     
     fig, ax = plt.subplots(figsize=(8,5))
     plt.plot(np.array(inputaxis), np.array(inputdata[0])*100, 
-                color='k', label=r'$\tau$ > 1')
+                color='k', label=r'$\frac{d\tau}{ds}$ > 1')
     plt.plot(np.array(inputaxis), np.array(inputdata[1])*100, 
-                color='b', label=r'$\tau$ > 2')
+                color='b', label=r'$\frac{d\tau}{ds}$ > 2')
     plt.plot(np.array(inputaxis), np.array(inputdata[2])*100, 
-                color='r', label=r'$\tau$ > 3')
-    plt.title('Percent of tropopause where limb is optically thick', fontsize=fsize)
+                color='r', label=r'$\frac{d\tau}{ds}$ > 3')
+    plt.title('Percent of tropopause where limb exceeds differential optical thickness of 1, 2 and 3', fontsize=fsize)
     plt.xlabel('Planet rotation period [days]', fontsize=fsize)
     plt.ylabel('Percent [%]', fontsize=fsize)
     plt.legend(loc='lower right')
@@ -405,12 +405,12 @@ def tau_contour(plobject, xaxis, yaxis, inputdata, save=False,
     fig, ax = plt.subplots(figsize=(8,5))
     plt.contourf(np.array(xaxis), np.array(yaxis), np.array(inputdata),
                 levels=np.arange(0,21,1), cmap='plasma')
-    plt.title('Max optical depth at planetary limb', fontsize=fsize)
+    plt.title('Max differential optical depth at planetary limb', fontsize=fsize)
     plt.xlabel('Planet rotation period [days]', fontsize=fsize)
     plt.ylabel('Pressure [mbar]', fontsize=fsize)
     plt.gca().invert_yaxis()
     cbar = plt.colorbar(orientation='vertical', fraction=0.05)
-    cbar.set_label(r'$\tau$', fontsize=fsize-2)
+    cbar.set_label(r'$\frac{d\tau}{ds}$', fontsize=fsize-2)
     if saveformat == 'eps':
         fig.tight_layout()
     if save == True:
@@ -841,11 +841,11 @@ def tau(plobject, item, qext, prad, pdens, time_slice=-1, meaning=True,
         contf = ax.contourf(th, r, limb.T, levels=clevs, cmap='plasma')
         ax.set_xticklabels(['90N','45N','eq.','45S','90S','45S','eq.','45N'])
         ax.set_rlim(bottom=heights[-1], top=heights[0]+1)
-        ax.set_title('Haze optical depth per 1000 km \n at planetary limb',
+        ax.set_title('Differential optical depth per 1000 km \n at planetary limb',
                      fontsize=fsize)
         cbar = plt.colorbar(contf, pad=0.15, orientation='vertical', 
                             fraction=0.05)
-        cbar.set_label(r'$\tau$', fontsize=fsize-2)
+        cbar.set_label(r'$\frac{d\tau}{ds}$', loc='center',fontsize=fsize-2)
         rlabels = ax.get_ymajorticklabels()
         for label in rlabels:
             label.set_color('white')
@@ -1009,7 +1009,7 @@ def wind_vectors(plobject, time_slice=-1, level=5, n=2, qscale=10, meaning=True,
     w = ax.contourf(w[level,:,:]*1e03, cmap='coolwarm', 
                  levels=np.arange(-0.25, 1.26, 0.05), norm=TwoSlopeNorm(0))
     cbar = plt.colorbar(w, orientation='vertical', fraction=0.05)
-    cbar.set_label('$10^{-3}$ m/s', loc='center')
+    cbar.set_label('Vertical wind [$10^{-3}$ m/s]', loc='center')
     
     q1 = ax.quiver(X[::n, ::n], Y[::n, ::n], u[level, ::n, ::n],
                    -v[level, ::n, ::n], scale_units='xy', scale=qscale)
@@ -1267,7 +1267,7 @@ def zmzwdiff(plobject, cobject, time_slice=-1, meaning=True, save=False,
         
     zmu = np.mean(plotme, axis=2)
     zmuc = np.mean(plotcontour, axis=2)
-    zmudiff = zmu - zmuc
+    zmudiff = np.abs(zmu) - np.abs(zmuc)
     
     # if plobject.name == 'trap':
     #     clevs = np.arange(-25, 75, 5)
