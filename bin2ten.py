@@ -21,4 +21,4 @@ d = {'wave': pd.Series(binned_w, index=np.arange(0,554)),
 
 binned = pd.DataFrame(data=d, index=np.arange(0,554), columns=['wave','n','k'])
 
-binned.to_csv('/home/s1144983/aerosim/corrales/binned_corrales.txt', index=False, sep=' ')
+binned.to_csv('/home/s1144983/aerosim/corrales/binned_corrales.txt', index=True, sep=' ')
